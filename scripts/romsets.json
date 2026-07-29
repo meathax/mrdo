@@ -1,0 +1,1181 @@
+{
+    "schema":  1,
+    "mameDriver":  "src/mame/universal/docastle.cpp",
+    "mameRevision":  "affe701f9210d003d2cc5eff311f94053afa679b",
+    "imageSize":  295936,
+    "slots":  {
+                  "maincpu":  {
+                                  "offset":  0,
+                                  "size":  65536
+                              },
+                  "subcpu":  {
+                                 "offset":  65536,
+                                 "size":  16384
+                             },
+                  "spritecpu":  {
+                                    "offset":  81920,
+                                    "size":  512
+                                },
+                  "gfx1":  {
+                               "offset":  82432,
+                               "size":  16384
+                           },
+                  "gfx2":  {
+                               "offset":  98816,
+                               "size":  131072
+                           },
+                  "adpcm":  {
+                                "offset":  229888,
+                                "size":  65536
+                            },
+                  "proms":  {
+                                "offset":  295424,
+                                "size":  512
+                            }
+              },
+    "sets":  [
+                 {
+                     "id":  0,
+                     "set":  "docastle",
+                     "zip":  "docastle.zip",
+                     "zipSha1":  "95263c40d975f8db36a56d156abd9dfcbf25c17c",
+                     "name":  "Mr. Do\u0027s Castle",
+                     "profile":  "castle",
+                     "rotation":  "vertical (ccw)",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "01p_a1.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "17c6fc24",
+                                       "sha1":  "e397d283e8b8e1c512495b777c0fe16f66bb1862"
+                                   },
+                                   {
+                                       "name":  "01n_a2.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  8192,
+                                       "length":  8192,
+                                       "crc32":  "1d2fc7f4",
+                                       "sha1":  "f7b0c7466cd6a3854eda818c63663e3559dc7bc2"
+                                   },
+                                   {
+                                       "name":  "01l_a3.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "71a70ba9",
+                                       "sha1":  "0c9e4c402f82d61d573eb55b3e2e0c8b7c8b7028"
+                                   },
+                                   {
+                                       "name":  "01k_a4.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "479a745e",
+                                       "sha1":  "7195036727990932bc94b30405ebc2b8ea5b37a8"
+                                   },
+                                   {
+                                       "name":  "07n_a0.bin",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "f23b5cdb",
+                                       "sha1":  "de71d9f142f8d420aa097d7e56b03a06db2f85fd"
+                                   },
+                                   {
+                                       "name":  "01d.bin",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "03a_a5.bin",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "0636b8f4",
+                                       "sha1":  "8b34773bf7b7071fb5c8ff443a08befae3b545ea"
+                                   },
+                                   {
+                                       "name":  "04m_a6.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "3bbc9b26",
+                                       "sha1":  "1b1f79717e5c1a23eefb2d6df71ad95aac9f8be4"
+                                   },
+                                   {
+                                       "name":  "04l_a7.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "3dfaa9d1",
+                                       "sha1":  "cc016019efe0a2bc38c66fadf792c05f6cabeeaa"
+                                   },
+                                   {
+                                       "name":  "04j_a8.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "9afb16e9",
+                                       "sha1":  "f951e75af658623f3b0e18ff388990b2870fad53"
+                                   },
+                                   {
+                                       "name":  "04h_a9.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "af24bce0",
+                                       "sha1":  "0f06c5d248c9c92f2a4636d259ab843339737969"
+                                   },
+                                   {
+                                       "name":  "09c.bin",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "066f52bc",
+                                       "sha1":  "99f4f2d0181bcaf389c16f127cc3e632d62ee417"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  1,
+                     "set":  "douni",
+                     "zip":  "douni.zip",
+                     "zipSha1":  "4fffbc822112699d9580bd9f4e3b1c106a8a3747",
+                     "name":  "Mr. Do! vs. Unicorns",
+                     "profile":  "castle",
+                     "rotation":  "vertical (ccw)",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "dorev1.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "1e2cbb3c",
+                                       "sha1":  "f3c6eab7f7f43a067d432d47f3403ab1d07575fe"
+                                   },
+                                   {
+                                       "name":  "dorev2.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  8192,
+                                       "length":  8192,
+                                       "crc32":  "18418f83",
+                                       "sha1":  "1be77b0b53e6d243484d942108e84b950f1a4901"
+                                   },
+                                   {
+                                       "name":  "dorev3.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "7b9e2061",
+                                       "sha1":  "2b21af54018a2ff756d80ba0b53b71108c0ce043"
+                                   },
+                                   {
+                                       "name":  "dorev4.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "e013954d",
+                                       "sha1":  "1e05937f3b6eaef77c36b485da091ebb22e50f85"
+                                   },
+                                   {
+                                       "name":  "dorev10.bin",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "4b1925e3",
+                                       "sha1":  "1b229dd73eede3853d23576dfe397a4d2d952991"
+                                   },
+                                   {
+                                       "name":  "01d.bin",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "03a_a5.bin",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "0636b8f4",
+                                       "sha1":  "8b34773bf7b7071fb5c8ff443a08befae3b545ea"
+                                   },
+                                   {
+                                       "name":  "dorev6.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "9e335bf8",
+                                       "sha1":  "30ccfb959c1d3069739280711ba3d7d8b7a1a2b0"
+                                   },
+                                   {
+                                       "name":  "dorev7.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "f5d5701d",
+                                       "sha1":  "f2731aaa7be3e269cf929aa14db1c967c9198dc6"
+                                   },
+                                   {
+                                       "name":  "dorev8.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "7143ca68",
+                                       "sha1":  "b5b45e3cf7d0287d93231eb01395a03f39f473fc"
+                                   },
+                                   {
+                                       "name":  "dorev9.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "893fc004",
+                                       "sha1":  "15559d11cc14341d2fec190d12205a649bdd484f"
+                                   },
+                                   {
+                                       "name":  "dorevc9.bin",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "96624ebe",
+                                       "sha1":  "74ff21dc85dcb013c941ec6c06cafdb5bcc16960"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  2,
+                     "set":  "dorunrun",
+                     "zip":  "dorunrun.zip",
+                     "zipSha1":  "9ef32a2a7bcf18fb663bb2f48ae322834d6273c6",
+                     "name":  "Do! Run Run",
+                     "profile":  "runrun",
+                     "rotation":  "horizontal",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "2764.p1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "95c86f8e",
+                                       "sha1":  "9fe44911e0aa8d4c7299472a31c401e064d63d17"
+                                   },
+                                   {
+                                       "name":  "2764.l1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "e9a65ba7",
+                                       "sha1":  "fbee57d68352fd4062aac55cd1070f001714d0a3"
+                                   },
+                                   {
+                                       "name":  "2764.k1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "b1195d3d",
+                                       "sha1":  "095ad2ee1f53be3203830263cb0c9efbe4710c56"
+                                   },
+                                   {
+                                       "name":  "2764.n1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "6a8160d1",
+                                       "sha1":  "12101c351bf800319172c459b5e7c69cb5603806"
+                                   },
+                                   {
+                                       "name":  "27128.p7",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "8b06d461",
+                                       "sha1":  "2434478810c6301197997be76505f5fc6beba5d3"
+                                   },
+                                   {
+                                       "name":  "bprom2.bin",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "27128.a3",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "4be96dcf",
+                                       "sha1":  "f9b45e6297cbbc4d1ee2df7ac377c5daf5181b0f"
+                                   },
+                                   {
+                                       "name":  "2764.m4",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "4bb231a0",
+                                       "sha1":  "350423a1e602e23b229095021942d4b14a4736a7"
+                                   },
+                                   {
+                                       "name":  "2764.l4",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "0c08508a",
+                                       "sha1":  "1e235a0f44207c53af2c8da631e5a8e08b231258"
+                                   },
+                                   {
+                                       "name":  "2764.j4",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "79287039",
+                                       "sha1":  "e2e3c056f35a22e48115557e10fcd172ad2f91f1"
+                                   },
+                                   {
+                                       "name":  "2764.h4",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "523aa999",
+                                       "sha1":  "1d4aa0af79a2ed7b935d4ce92d978bf738f08eb3"
+                                   },
+                                   {
+                                       "name":  "dorunrun.clr",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  256,
+                                       "crc32":  "d5bab5d5",
+                                       "sha1":  "7a465fe30b6008793d33f6e07086c89111e1e407"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  3,
+                     "set":  "dowild",
+                     "zip":  "dowild.zip",
+                     "zipSha1":  "89db8f372920e5eb1404cdf5ce12347c5738affc",
+                     "name":  "Mr. Do\u0027s Wild Ride",
+                     "profile":  "runrun",
+                     "rotation":  "horizontal",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "w1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "097de78b",
+                                       "sha1":  "8d0cedde09a893ff67db0cb8e239babeb2cb3701"
+                                   },
+                                   {
+                                       "name":  "w3",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "fc6a1cbb",
+                                       "sha1":  "4cf59459d521c725e41bbd9363fb58bffdad13a2"
+                                   },
+                                   {
+                                       "name":  "w4",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "8aac1d30",
+                                       "sha1":  "c746f5506a541b25a7ca6fc754fbdb94212f7178"
+                                   },
+                                   {
+                                       "name":  "w2",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "0914ab69",
+                                       "sha1":  "048a68976d313015ff40f411d5c89d318fd9bb04"
+                                   },
+                                   {
+                                       "name":  "w10",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "d1f37fba",
+                                       "sha1":  "827e2e3b140c4df2fd8780d7d05dc45694cf8f02"
+                                   },
+                                   {
+                                       "name":  "8300b-2",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "w5",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "b294b151",
+                                       "sha1":  "c8c15bf9ab2401052ec80fdfc8fe124c6aa52521"
+                                   },
+                                   {
+                                       "name":  "w6",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "57e0208b",
+                                       "sha1":  "52c1157d7df84fef754cd9466a70df7e53bc837f"
+                                   },
+                                   {
+                                       "name":  "w7",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "5001a6f7",
+                                       "sha1":  "ef37a26f0c2960fc55ff800da5d4d9c3d54270c2"
+                                   },
+                                   {
+                                       "name":  "w8",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "ec503251",
+                                       "sha1":  "ea7bb11c8e51fe69b5ecba4e4806ec8a8e4961d7"
+                                   },
+                                   {
+                                       "name":  "w9",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "af7bd7eb",
+                                       "sha1":  "1cc017b4606d1f6d70cc6cdaf9cf7797dd552b4b"
+                                   },
+                                   {
+                                       "name":  "dowild.clr",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  256,
+                                       "crc32":  "a703dea5",
+                                       "sha1":  "159abdb62cb8bf3167d9fdc26038fb485219af7c"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  4,
+                     "set":  "jjack",
+                     "zip":  "jjack.zip",
+                     "zipSha1":  "64a6b1234606aedbfabf868d7c677c86d01aba2d",
+                     "name":  "Jumping Jack",
+                     "profile":  "runrun",
+                     "rotation":  "vertical (ccw)",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "j1.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "87f29bd2",
+                                       "sha1":  "12b0a6f84439b84dd09fe54436c765fc58f928e1"
+                                   },
+                                   {
+                                       "name":  "j3.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "35b0517e",
+                                       "sha1":  "756d7627f4dc2e9b24be7b0c4c80a9043cb4c322"
+                                   },
+                                   {
+                                       "name":  "j4.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "35bb316a",
+                                       "sha1":  "8461503179eb7798de6f9f6677eb18ebcd22d470"
+                                   },
+                                   {
+                                       "name":  "j2.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "dec52e80",
+                                       "sha1":  "1620a070a75115d7c35f44574a8b53ce137ce21a"
+                                   },
+                                   {
+                                       "name":  "j0.bin",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "ab042f04",
+                                       "sha1":  "06412dbdc43ebd6d376a811f240a4c9ec43ca6e7"
+                                   },
+                                   {
+                                       "name":  "bprom2.bin",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "j5.bin",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "75038ff9",
+                                       "sha1":  "2a92e0d0adb1abd029c5ee6e350a859fed3f0ae9"
+                                   },
+                                   {
+                                       "name":  "j6.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "5937bd7b",
+                                       "sha1":  "4d399370422e22448d1680113d5bbe9894086a2b"
+                                   },
+                                   {
+                                       "name":  "j7.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "cf8ae8e7",
+                                       "sha1":  "81b881eda0bf60f52dadf22aafc9ca7162fd1540"
+                                   },
+                                   {
+                                       "name":  "j8.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "84f6fc8c",
+                                       "sha1":  "be631af9525262cf98c982b88cb97d3287366731"
+                                   },
+                                   {
+                                       "name":  "j9.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "3f9bb09f",
+                                       "sha1":  "a38f7c9a21e37c7b903497e8170f64a378df730e"
+                                   },
+                                   {
+                                       "name":  "bprom1.bin",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "2f0955f2",
+                                       "sha1":  "5eb417478669560f447a0a0e6fe93af27804590f"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  5,
+                     "set":  "kickridr",
+                     "zip":  "kickridr.zip",
+                     "zipSha1":  "4262199a05e0e957af2810c849a13d7a48245459",
+                     "name":  "Kick Rider",
+                     "profile":  "runrun",
+                     "rotation":  "horizontal",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "k1",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "dfdd1ab4",
+                                       "sha1":  "2f1ad3a8b2c1cbca2dc4a9a0c9a5f79af8712999"
+                                   },
+                                   {
+                                       "name":  "k3",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "412244da",
+                                       "sha1":  "2d4efad88c27db00c18626a667bd00531f4cc4fb"
+                                   },
+                                   {
+                                       "name":  "k4",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "a67dd2ec",
+                                       "sha1":  "d35eefd314c7a7d9badffc8a19270380f01e263c"
+                                   },
+                                   {
+                                       "name":  "k2",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "e193fb5c",
+                                       "sha1":  "3719c012bb1d75e79aa111093864b6e6bb46bc8c"
+                                   },
+                                   {
+                                       "name":  "k10",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "6843dbc0",
+                                       "sha1":  "8a83f785e1fc2fa34a9955c19e27a1968a6d3f08"
+                                   },
+                                   {
+                                       "name":  "8300b-2",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "k5",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "3f7d7e49",
+                                       "sha1":  "ed9697656a46c3e036665659a008396b323c9c2b"
+                                   },
+                                   {
+                                       "name":  "k6",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "94252ed3",
+                                       "sha1":  "ec7a31d786104a8ebff9229d89e78a074b1b5205"
+                                   },
+                                   {
+                                       "name":  "k7",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "7ef2420e",
+                                       "sha1":  "b04443ba9f7d19b0b8c15fab2aa7d86febb2add3"
+                                   },
+                                   {
+                                       "name":  "k8",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "29bed201",
+                                       "sha1":  "f44b2a65d3bd6612a726dd17c3e5e29e7f8196b2"
+                                   },
+                                   {
+                                       "name":  "k9",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "847584d3",
+                                       "sha1":  "14aa799a2d060f49fc955c760b0e97e9c1ac1662"
+                                   },
+                                   {
+                                       "name":  "kickridr.clr",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  256,
+                                       "crc32":  "73ec281c",
+                                       "sha1":  "1af32653e03c1e0aadef47b91bdc3f3c56ef7b23"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  6,
+                     "set":  "spiero",
+                     "zip":  "spiero.zip",
+                     "zipSha1":  "5c60cbd24285fedc1b91ae7f443001274654a831",
+                     "name":  "Super Pierrot",
+                     "profile":  "runrun",
+                     "rotation":  "horizontal",
+                     "dsw1":  "DF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "sp1.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "08d23e38",
+                                       "sha1":  "0810b0ecaa1bd7f16f78ce08054f5d24a57b1266"
+                                   },
+                                   {
+                                       "name":  "sp3.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  16384,
+                                       "length":  8192,
+                                       "crc32":  "faa0c18c",
+                                       "sha1":  "0dadea03b529bb889f45bd710bca0b4333cbbba8"
+                                   },
+                                   {
+                                       "name":  "sp4.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "639b4e5d",
+                                       "sha1":  "cf252869fa0c5351f093026996c4e372f19a52a9"
+                                   },
+                                   {
+                                       "name":  "sp2.bin",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "3a29ccb0",
+                                       "sha1":  "37d6ce598a9c3b5dbb23c19a4bd94265287f83f7"
+                                   },
+                                   {
+                                       "name":  "27128.p7",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "8b06d461",
+                                       "sha1":  "2434478810c6301197997be76505f5fc6beba5d3"
+                                   },
+                                   {
+                                       "name":  "bprom2.bin",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "sp5.bin",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "1b704bb0",
+                                       "sha1":  "db3b2f120d632b5f897c47aee115916ec6c52a69"
+                                   },
+                                   {
+                                       "name":  "sp6.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  8192,
+                                       "crc32":  "00f893a7",
+                                       "sha1":  "9680d59065a18ea25734bdcd9a1dd1d5d721a47b"
+                                   },
+                                   {
+                                       "name":  "sp7.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  107008,
+                                       "length":  8192,
+                                       "crc32":  "173e5c6a",
+                                       "sha1":  "5d06b8702e90af122c347e20b01811994165e727"
+                                   },
+                                   {
+                                       "name":  "sp8.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  16384,
+                                       "streamOffset":  115200,
+                                       "length":  8192,
+                                       "crc32":  "2e66525a",
+                                       "sha1":  "50e7b5e5f01d961eb311c65321fc536d8e4eb7b0"
+                                   },
+                                   {
+                                       "name":  "sp9.bin",
+                                       "region":  "gfx2",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  123392,
+                                       "length":  8192,
+                                       "crc32":  "9c571525",
+                                       "sha1":  "c7f1c22c6decd6326ef188bbf440115c1e2b16f4"
+                                   },
+                                   {
+                                       "name":  "bprom1.bin",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "fc1b66ff",
+                                       "sha1":  "0a73f7e00501c638f017473b1e0786d7bcbbe82a"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  7,
+                     "set":  "idsoccer",
+                     "zip":  "idsoccer.zip",
+                     "zipSha1":  "0725bc6bcbc4a57d26e9a6a05ebaf5ed52f7c1ed",
+                     "name":  "Indoor Soccer",
+                     "profile":  "soccer",
+                     "rotation":  "horizontal",
+                     "dsw1":  "FF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "id01",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "f1c3bf09",
+                                       "sha1":  "446d373671f122d8131d2ec2d80c2110ec68a19b"
+                                   },
+                                   {
+                                       "name":  "id02",
+                                       "region":  "maincpu",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  8192,
+                                       "length":  8192,
+                                       "crc32":  "184e6af0",
+                                       "sha1":  "1664ca6fa0efae8496d051ac5f19596239e7cbcb"
+                                   },
+                                   {
+                                       "name":  "id03",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "22524661",
+                                       "sha1":  "363528a1135d11ead03c76064042a72e0ac93533"
+                                   },
+                                   {
+                                       "name":  "id04",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "e8cd95fd",
+                                       "sha1":  "2e272c154bd5dd2dca58d3fe12c6ba5e01a62477"
+                                   },
+                                   {
+                                       "name":  "id10",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "6c8b2037",
+                                       "sha1":  "718d680186623d5af23ed272f04e726fbb17f078"
+                                   },
+                                   {
+                                       "name":  "id_8p",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "id05",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "a57c7a11",
+                                       "sha1":  "9faebad0050da05101811427f350e163a7811396"
+                                   },
+                                   {
+                                       "name":  "id06",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  32768,
+                                       "crc32":  "b42a6f4a",
+                                       "sha1":  "ddce4438b3649610bd3703cbd7592aaa9a3eda0e"
+                                   },
+                                   {
+                                       "name":  "id07",
+                                       "region":  "gfx2",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  131584,
+                                       "length":  32768,
+                                       "crc32":  "fa2b1c77",
+                                       "sha1":  "0d8e9db065c76621deb58575f01c6ec5ee6cf6b0"
+                                   },
+                                   {
+                                       "name":  "id08",
+                                       "region":  "gfx2",
+                                       "regionOffset":  65536,
+                                       "streamOffset":  164352,
+                                       "length":  32768,
+                                       "crc32":  "5e97eab9",
+                                       "sha1":  "40d261a0255c594353816c18aa6c0c245aeb68a8"
+                                   },
+                                   {
+                                       "name":  "id09",
+                                       "region":  "gfx2",
+                                       "regionOffset":  98304,
+                                       "streamOffset":  197120,
+                                       "length":  32768,
+                                       "crc32":  "a2a69223",
+                                       "sha1":  "6bd9b76e0119643450c9f64c80b52e9056da82d6"
+                                   },
+                                   {
+                                       "name":  "is1",
+                                       "region":  "adpcm",
+                                       "regionOffset":  0,
+                                       "streamOffset":  229888,
+                                       "length":  16384,
+                                       "crc32":  "9eb76196",
+                                       "sha1":  "c15331dd8c3efaa83a95245210d05eaaa64b3161"
+                                   },
+                                   {
+                                       "name":  "is3",
+                                       "region":  "adpcm",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  262656,
+                                       "length":  16384,
+                                       "crc32":  "27bebba3",
+                                       "sha1":  "cf752b22603c1e2a0b33958481c652d6d56ebf68"
+                                   },
+                                   {
+                                       "name":  "is4",
+                                       "region":  "adpcm",
+                                       "regionOffset":  49152,
+                                       "streamOffset":  279040,
+                                       "length":  16384,
+                                       "crc32":  "dd5ffaa2",
+                                       "sha1":  "4bc4330a54ca93448a8fe05207d3fb1a3a9872e1"
+                                   },
+                                   {
+                                       "name":  "id_3d.clr",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "a433ff62",
+                                       "sha1":  "db9afe5fc917d25aafa21576cb1cecec7481d4cb"
+                                   }
+                               ]
+                 },
+                 {
+                     "id":  8,
+                     "set":  "asoccer",
+                     "zip":  "asoccer.zip",
+                     "zipSha1":  "6c9b72c8a0c083529e7d0c62415a6bc7358f2e76",
+                     "name":  "American Soccer",
+                     "profile":  "soccer",
+                     "rotation":  "horizontal",
+                     "dsw1":  "FF",
+                     "dsw2":  "FF",
+                     "parts":  [
+                                   {
+                                       "name":  "as1.e10",
+                                       "region":  "maincpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  0,
+                                       "length":  8192,
+                                       "crc32":  "e9d61bbf",
+                                       "sha1":  "8f9b3a6fd99f136698035263a20f39c3174b70cf"
+                                   },
+                                   {
+                                       "name":  "as2.f10",
+                                       "region":  "maincpu",
+                                       "regionOffset":  8192,
+                                       "streamOffset":  8192,
+                                       "length":  8192,
+                                       "crc32":  "62b2e4c8",
+                                       "sha1":  "4270148652b18006c7df1f612f9b19f06e5400de"
+                                   },
+                                   {
+                                       "name":  "as3.h10",
+                                       "region":  "maincpu",
+                                       "regionOffset":  24576,
+                                       "streamOffset":  24576,
+                                       "length":  8192,
+                                       "crc32":  "25bbd0d8",
+                                       "sha1":  "fa7fb4b78e5ac4200ff5f57f94794632af450ce0"
+                                   },
+                                   {
+                                       "name":  "as4.k10",
+                                       "region":  "maincpu",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  32768,
+                                       "length":  8192,
+                                       "crc32":  "8d8bdc08",
+                                       "sha1":  "75da310576047102af45c3a5f7d20893ef260d40"
+                                   },
+                                   {
+                                       "name":  "as0.e2",
+                                       "region":  "subcpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  65536,
+                                       "length":  16384,
+                                       "crc32":  "05d613bf",
+                                       "sha1":  "ab822fc532fc7f1122b5ff0385b268513e7e193e"
+                                   },
+                                   {
+                                       "name":  "200b.p8",
+                                       "region":  "spritecpu",
+                                       "regionOffset":  0,
+                                       "streamOffset":  81920,
+                                       "length":  512,
+                                       "crc32":  "2747ca77",
+                                       "sha1":  "abc0ca05925974c4b852827605ee2f1caefb8524"
+                                   },
+                                   {
+                                       "name":  "as5-2.e6",
+                                       "region":  "gfx1",
+                                       "regionOffset":  0,
+                                       "streamOffset":  82432,
+                                       "length":  16384,
+                                       "crc32":  "430295c4",
+                                       "sha1":  "b1f4d9ab3ec0c969da4db51f476c47e87d48b879"
+                                   },
+                                   {
+                                       "name":  "as6.p3-2",
+                                       "region":  "gfx2",
+                                       "regionOffset":  0,
+                                       "streamOffset":  98816,
+                                       "length":  32768,
+                                       "crc32":  "ae577023",
+                                       "sha1":  "61e8f441eca1ff64760bae8139c8fa378ff5fbd2"
+                                   },
+                                   {
+                                       "name":  "as7.n3-2",
+                                       "region":  "gfx2",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  131584,
+                                       "length":  32768,
+                                       "crc32":  "a20ddd9b",
+                                       "sha1":  "530e5371b7f52031e555c98d1ff70c7beba94d4a"
+                                   },
+                                   {
+                                       "name":  "as8.l3-2",
+                                       "region":  "gfx2",
+                                       "regionOffset":  65536,
+                                       "streamOffset":  164352,
+                                       "length":  32768,
+                                       "crc32":  "dafad065",
+                                       "sha1":  "a491680b642bd1ea4936f914297e61d4e3ccad88"
+                                   },
+                                   {
+                                       "name":  "as9.j3-2",
+                                       "region":  "gfx2",
+                                       "regionOffset":  98304,
+                                       "streamOffset":  197120,
+                                       "length":  32768,
+                                       "crc32":  "3a2ae776",
+                                       "sha1":  "d9682abd30f64c51498c678257797d125b1c6a43"
+                                   },
+                                   {
+                                       "name":  "1.ic1",
+                                       "region":  "adpcm",
+                                       "regionOffset":  0,
+                                       "streamOffset":  229888,
+                                       "length":  16384,
+                                       "crc32":  "3bb65dc7",
+                                       "sha1":  "499151903b3da9fa2455b3d2c04863b3e33e853d"
+                                   },
+                                   {
+                                       "name":  "3.ic3",
+                                       "region":  "adpcm",
+                                       "regionOffset":  32768,
+                                       "streamOffset":  262656,
+                                       "length":  16384,
+                                       "crc32":  "27bebba3",
+                                       "sha1":  "cf752b22603c1e2a0b33958481c652d6d56ebf68"
+                                   },
+                                   {
+                                       "name":  "4.ic4",
+                                       "region":  "adpcm",
+                                       "regionOffset":  49152,
+                                       "streamOffset":  279040,
+                                       "length":  16384,
+                                       "crc32":  "dd5ffaa2",
+                                       "sha1":  "4bc4330a54ca93448a8fe05207d3fb1a3a9872e1"
+                                   },
+                                   {
+                                       "name":  "3-2d.d3-2",
+                                       "region":  "proms",
+                                       "regionOffset":  0,
+                                       "streamOffset":  295424,
+                                       "length":  512,
+                                       "crc32":  "a433ff62",
+                                       "sha1":  "db9afe5fc917d25aafa21576cb1cecec7481d4cb"
+                                   }
+                               ]
+                 }
+             ]
+}
