@@ -23,6 +23,18 @@
 - Used by the Indoor Soccer and American Soccer hardware profile at the
   verified 384 kHz input clock and S48 four-bit mode.
 
+## MiSTer CRT Adjust
+
+- `rtl/crt_adjust.sv`
+- https://github.com/rmonic79/MiSTer-CRT-Adjust
+- Pinned revision `9616f9295c807b95a9cd0961981ebf08dbbabf08`
+- GPL-3.0-or-later; author Umberto Parisi (`rmonic79`), with contributions
+  acknowledged in the upstream source.
+- Integrated core-side with all three upstream controls: horizontal size,
+  horizontal position, and vertical shift. The Universal 312x264 raster uses
+  upstream `HPOS_SYNCSHIFT` mode because its 240-pixel active area has
+  asymmetric horizontal blanking.
+
 ## MiSTer framework
 
 - `sys/`, `rtl/pause.v`, `rtl/pll.*`
@@ -42,8 +54,12 @@
 ## CF37201N decap reference
 
 - https://github.com/furrtek/SiliconRE/tree/master/Misc/CF37201N
-- Used only as hardware-behavior evidence. No SiliconRE RTL is included.
-- The published GPL-2.0 licensing has not been established as compatible with
-  this GPL-3.0-only tree, and the reproduction source documents uncertain
-  equations. Any future custom-chip implementation must pass the license and
-  independent-verification gate in `docs/UNIVERSAL_DOCASTLE_PLAN.md`.
+- Pinned revision `7c94fad788c33ff696ad7f07703b1dc303e3230c`.
+- Upstream is GPL-2.0. The user explicitly approved consulting this material.
+- `rtl/docastle_cf37201.sv` and the optional framebuffer are independently
+  expressed synchronous models derived from the published decap observations,
+  pinout and schematic. The upstream reproduction RTL was not copied into this
+  tree; its transparent-latch structure and documented uncertain equations are
+  deliberately not transplanted.
+- The proven direct renderer remains the default until the optional framebuffer
+  has stronger behavioral or physical-board evidence.

@@ -86,19 +86,36 @@ $crcTable = New-Crc32Table
 $summaries = @()
 
 foreach ($game in $requested) {
-	$zipPath = Join-Path $projectRoot $game.zip
-	$zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA1).Hash.ToLowerInvariant()
-	if ($zipHash -ne $game.zipSha1) {
-		throw "$($game.zip) SHA-1 $zipHash does not match manifest $($game.zipSha1)"
+	$zipNames = if ($game.PSObject.Properties.Name -contains "zipSources") {
+		@($game.zipSources)
+	} else {
+		@($game.zip)
+	}
+	$zipPaths = @($zipNames | ForEach-Object { Join-Path $projectRoot $_ })
+	foreach ($zipPath in $zipPaths) {
+		if (-not (Test-Path -LiteralPath $zipPath)) {
+			throw "Missing ROM archive: $zipPath"
+		}
+	}
+	if ($game.PSObject.Properties.Name -contains "zipSha1" -and $game.zipSha1) {
+		$zipHash = (Get-FileHash -LiteralPath $zipPaths[0] -Algorithm SHA1).Hash.ToLowerInvariant()
+		if ($zipHash -ne $game.zipSha1) {
+			throw "$($zipNames[0]) SHA-1 $zipHash does not match manifest $($game.zipSha1)"
+		}
 	}
 
 	$image = New-Object byte[] ([int]$definition.imageSize)
 	$written = New-Object bool[] ([int]$definition.imageSize)
-	$archive = [IO.Compression.ZipFile]::OpenRead($zipPath)
+	$archives = @()
 	try {
 		$entries = @{}
-		foreach ($entry in $archive.Entries) {
-			$entries[$entry.FullName.ToLowerInvariant()] = $entry
+		foreach ($zipPath in $zipPaths) {
+			$archive = [IO.Compression.ZipFile]::OpenRead($zipPath)
+			$archives += $archive
+			foreach ($entry in $archive.Entries) {
+				$key = $entry.FullName.ToLowerInvariant()
+				if (-not $entries.ContainsKey($key)) { $entries[$key] = $entry }
+			}
 		}
 
 		foreach ($part in $game.parts) {
@@ -133,7 +150,7 @@ foreach ($game in $requested) {
 			[Array]::Copy($bytes, 0, $image, $offset, $bytes.Length)
 		}
 	} finally {
-		$archive.Dispose()
+		foreach ($archive in $archives) { $archive.Dispose() }
 	}
 
 	$outFile = Join-Path $outputPath "$($game.set).rom"

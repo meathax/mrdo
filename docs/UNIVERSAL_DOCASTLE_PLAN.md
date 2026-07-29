@@ -1,6 +1,6 @@
 # Universal Do! Castle Hardware MiSTer Core — Implementation Plan
 
-**Plan status:** RTL/MRA implementation and nine-game software verification complete; corrected Soccer ADPCM gain resimulated successfully; one Universal_DoCastle RBF built with positive slack in every analyzed timing domain; MiSTer deployment/on-device audit not performed in the current build-only step  
+**Plan status:** RTL/MRA implementation and nine-game software verification complete; PCB support, watchdog, live CRTC, third-CPU/CF doorway, optional audio stage and experimental framebuffer/interrupt paths implemented; seed-4 Fast Fit timing clean in every reported domain; physical PCB/MiSTer audit unavailable
 **Target FPGA file:** Universal_DoCastle.rbf  
 **Target delivery:** One shared RBF and one MRA for each supported game  
 **Primary accuracy oracle:** Local current MAME source plus schematics, manuals, PCB evidence, decap data, and controlled emulator comparisons
@@ -36,7 +36,7 @@ ROM files remain user-supplied and will not be redistributed.
 1. **One RBF, three hardware profiles, nine stable game IDs.** The ID is retained independently of reset and decoded centrally.
 2. **One fixed ROM ABI.** Every MRA produces the same 0x48400-byte index-0 stream. Sparse CPU and ADPCM holes are explicitly filled, so RTL addressing remains natural and does not depend on load order or game-specific packed offsets.
 3. **MAME-equivalent functionality first.** Extend the current direct sprite renderer to boot every game before replacing it with a third-Z80/CF37201 framebuffer implementation.
-4. **Hardware fidelity as a gated second milestone.** The CF37201 decap is a valuable hardware oracle, but its reproduction RTL is not a safe drop-in and its licensing must be resolved before any direct reuse.
+4. **Hardware fidelity as a gated second milestone.** The CF37201 decap is a valuable hardware oracle. Reference use is approved, but its reproduction RTL is not a safe drop-in; the implementation is independently expressed and the new field renderer remains opt-in until it is more accurate.
 5. **Build the Verilated model once, run all profiles serially.** Runtime ROM, game ID, input script, and capture arguments must not trigger redundant rebuilds.
 6. **MRA owns native orientation and game-specific settings.** The core still exposes MiSTer's normal user rotation controls, but each MRA starts with the correct cabinet orientation and DIP layout.
 7. **No silent defaults.** Unknown game IDs must hold the machine in reset and expose a diagnostic condition rather than accidentally selecting Castle behavior.
@@ -87,7 +87,7 @@ All behavior ported from MAME must retain BSD attribution in the source tree. Th
 | Existing local JT89 | Four SN76489A-compatible PSGs | GPL-3.0-compatible with this project |
 | Jotego JT5205 | Soccer MSM5205 implementation | GPL-3.0; pin a reviewed revision and preserve attribution |
 | MAME docastle driver | Behavioral specification and comparison oracle | BSD-3-Clause; reuse with attribution |
-| Furrtek SiliconRE CF37201N work | Decap, pinout, schematic, trace, and behavioral oracle | Published under GPL-2.0; direct compatibility with this GPL-3.0-only project is not established |
+| Furrtek SiliconRE CF37201N work | Decap, pinout, schematic, trace, and behavioral oracle | GPL-2.0 at pinned revision; user approved reference use; no reproduction RTL copied |
 | FinalBurn Neo driver | Secondary behavioral cross-check only | Non-commercial restriction; do not copy code |
 | Arcade-MrDo_MiSTer | MiSTer wrapper/common-IP patterns only | Earlier Mr. Do hardware, not this board family |
 
@@ -100,8 +100,10 @@ Furrtek's SiliconRE repository contains a decap-derived pinout, transistor/gate 
 The published reproduction contains explicit uncertainty and asynchronous latch-style constructs. The release plan is therefore:
 
 1. Use its documentation as an external hardware oracle.
-2. Do not copy the reproduction RTL until GPL compatibility or separate permission is confirmed.
-3. If permission is unavailable, write an independent synchronous implementation from observable hardware behavior and schematics, documenting the separation.
+2. Keep the reproduction RTL out of this tree; the user has approved consulting
+   the GPL-2.0 reference, but its source is not transplanted.
+3. Use the independently expressed synchronous implementation derived from
+   observable hardware behavior and schematics, documenting the separation.
 4. Keep the known-good MAME-style sprite path selectable in verification until the custom-chip path is proven equivalent or more accurate.
 
 ### 3.4 Supplied ROM archive inventory
@@ -530,6 +532,12 @@ Exit gate:
 - Interrupt selection is supported by measured evidence, not assumption.
 - The custom-chip path becomes production default only if every game passes and it resolves known inaccuracies. Otherwise the MAME-equivalent path remains the release implementation and the limitation is documented.
 
+Implemented disposition (2026-07-29): all nine games pass with third-CPU/CF
+traffic, the live CRTC and watchdog enabled while retaining the proven renderer.
+The full framebuffer remains experimental after a weaker title-frame match.
+VSYNC passed the bounded 361-frame Do! Run Run timing run; CURSOR reached the
+watchdog and therefore remains an experimental comparison only.
+
 ### Phase 5 — Full automated regression and MAME differential audit
 
 Tasks:
@@ -558,7 +566,12 @@ Quartus remains stopped until Phase 5 passes. When authorized to build:
 - Require non-negative setup, hold, recovery, removal, and minimum-pulse slack in every relevant clock domain.
 - Inspect resource usage and confirm ROM/RAM inference.
 
-The current known DoCastle build has approximately -0.227 ns HDMI setup slack and is not release-eligible. The universal RBF must not inherit that waiver.
+The 2026-07-29 enhanced Universal_DoCastle seed-4 Fast Fit is timing clean:
++0.259 ns worst setup, +0.251 ns hold, +4.223 ns recovery, +0.747 ns removal,
++1.122 ns minimum pulse width, and zero TNS in every reported domain. The game
+clock has +2.966 ns setup margin with the PCB options compiled in. Quartus Lite
+generated a fresh 3,973,880-byte programming file; its SHA-256 is
+`7552B2EFAB29DF148B5AC09C0FA7F317CE453BB52CA237F8BCB4B65BE785A69B`.
 
 Release contents:
 
@@ -654,9 +667,9 @@ Each row must finish with evidence for every column:
 |---|---|
 | Main/sub handshake is cycle-sensitive | Event-level trace comparison, targeted minimal tests, no timeout hacks |
 | TMS1025 has no identified TI public documentation | Preserve MAME's pipelined model, validate all selectors, use real-game timing |
-| Cursor versus VSYNC discrepancy | Match current MAME first; change only after schematic/PCB evidence and nine-game regression |
-| MAME bypasses third Z80 and CF37201 | Functional direct renderer first; decap-informed custom path as a separately gated milestone |
-| CF37201 reproduction license/uncertain equations | Do not import until permission/compatibility is clear; otherwise independent implementation |
+| Cursor versus VSYNC discrepancy | VSYNC passed the 361-frame Do! Run Run test; CURSOR hit the watchdog and remains experimental pending PCB evidence |
+| MAME bypasses third Z80 and CF37201 | Third-CPU/CF traffic now runs in PCB support; proven direct renderer stays default and the field renderer is separately gated |
+| CF37201 reproduction license/uncertain equations | GPL-2.0 reference use approved; upstream RTL not copied; independently expressed synchronous model retained |
 | Soccer dual-stick UX differs by controller | Analog mapping plus documented digital fallback; test multiple controller types later |
 | Soccer sample ROM has an empty socket | Explicit zero fill at 0x4000–0x7fff and unit tests |
 | Run Run deterministic attract sequence varies by revision | Do not use dorunrun2's board sequence as an exact oracle for parent dorunrun |

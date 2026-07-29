@@ -71,6 +71,10 @@ always @(*) begin
 			has_adpcm = 1'b1;
 			has_joys2 = 1'b1;
 		end
+		8'h09: begin // Do! Run Run set 2 (board-sequence oracle)
+			profile = PROFILE_RUNRUN;
+			low_pen_priority = 1'b1;
+		end
 		default: begin
 			valid = 1'b0;
 			profile = PROFILE_CASTLE;

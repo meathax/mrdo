@@ -33,11 +33,26 @@ tile/colour RAM `b000-bfff` with the documented mirrors, and sub-NMI trigger
 `a000-a7ff`, input mux at `c000-c007/c080-c087`, and PSG writes at
 `e000/e400/e800/ec00`.
 
-The 8301 sprite CPU runs its dumped ROM. Its external `8000`/`c000` doorways
-remain no-op just as in current MAME because the exact custom sprite-doorway
-protocol is not yet documented; main-CPU sprite writes feed the renderer
-directly. This limitation is isolated and observable for later schematic or
-logic-analyser refinement.
+The 8301 sprite CPU runs its dumped ROM instead of being bypassed. The RTL
+implements both observed transfer phases: main sprite staging RAM to its
+`0x8000` work doorway, then `0xc000-0xc7ff` writes into the CF37201. Disassembly
+and simulation show `0xc432` changing from `0x20` to `0x00`; that falling bit
+arms the custom chip's `/PL` interval, whose interrupt is acknowledged by the
+third Z80 and re-armed while enabled. Only real bus writes feed this path.
+
+The synchronous CF37201 model follows the available TAL004 decap reproduction:
+three decoded registers (A3 is not decoded), register-1 staging, X/Y counters,
+palette/flip latches, the exact two-phase DRAM address mux, serial inversion,
+field parity, and the measured 126-MCLK `/PL` cycle. Normal PCB support retains
+the visually proven sprite renderer; the optional full 64K two-field renderer
+is deliberately experimental because it still misses part of the title logo.
+
+The HD6845 model has writable R0-R15 timing, start address, memory/raster
+address generation, sync widths, display skew, cursor shape, and cursor blink.
+Writes are frame-shadowed, and incomplete all-zero programming bursts are not
+committed as a dead timing mode. VSYNC remains the production interrupt source:
+with CURSOR selected, Do! Run Run deliberately clears all CRTC registers and
+does not recover in simulation, so the schematic ambiguity remains open.
 
 ## Video priority
 
@@ -52,10 +67,10 @@ red/green `0x23,0x4b,0x91`; blue `0x52,0xad`.
 
 ## Open questions to validate
 
-- Exact 8301/custom-sprite-chip doorway semantics beyond MAME's bypass.
-- CRTC cursor-derived main/sprite interrupt detail called out by MAME TODO;
-  the programmed CRTC register values and resulting raster/interrupt positions
-  have been captured directly from a deterministic MAME run.
+- Physical validation of the decap-derived CF37201 timing and field output.
+- Why the schematic CURSOR-derived interrupt conflicts with the game's later
+  all-zero CRTC programming burst; VSYNC is the validated release behavior.
+- The `dorunrun2` 12-round sequence, pending the clone ROM archive and PCB.
 - Board-level analogue audio filtering and amplifier response.
 - Pixel-clock correction from 4.9152 MHz to the nominal 4.914 MHz if a
   dedicated fractional PLL profile proves worthwhile on hardware.

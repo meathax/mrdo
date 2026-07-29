@@ -20,9 +20,31 @@ for each game.
 
 The core models three 4 MHz Z80s, the cycle-sensitive main/sub WAIT
 handshake, TMS1025 input pipeline, four SN76489A PSGs with READY-driven wait,
-CRTC-derived video timing, profile-specific CPU maps and tile priority,
-standard and Soccer sprite formats, Soccer dual-stick inputs, and Soccer
-MSM5205 ADPCM through a pinned JT5205 implementation.
+live board-relevant HD6845 registers and raster outputs, profile-specific CPU
+maps and tile priority, standard and Soccer sprite formats, Soccer dual-stick
+inputs, and Soccer MSM5205 ADPCM through a pinned JT5205 implementation. It
+also includes the main-board watchdog and a decap-informed synchronous model
+of the third-CPU/CF37201 sprite doorway. The wrapper provides OSD-controlled
+CRT H-Size, H-Position, and V-Shift through the pinned MiSTer-CRT-Adjust
+core-side implementation, plus selectable normal or full H+V integer HDMI
+scaling.
+
+## PCB support options
+
+The default remains the nine-game visually proven path. `PCB support` enables
+the dumped third CPU's two real transfer phases, the decoded CF37201 registers,
+the chip's 126-MCLK `/PL`/interrupt cycle, and the three-second watchdog while
+retaining the proven renderer. The CF model now uses the decap-derived address,
+counter, flip, palette, and field-select equations. This mode completed
+software regressions for all nine sets and a 361-frame Do! Run Run timing run.
+
+`PCB audio stage` adds a 48 kHz approximation of the service-manual output
+coupling and speaker roll-off. `Experimental CF framebuffer` selects the full
+two-field 64K renderer driven only by the real third-CPU/CF stream; it remains
+opt-in because the central title sprite is still missing in comparison with
+the proven renderer. `Experimental IRQ` compares the schematic CURSOR source
+with validated VSYNC behavior. CURSOR mode is not a release default: the game
+later clears every CRTC register and stalls, while VSYNC completes cleanly.
 
 ## ROMs and MRAs
 
@@ -62,14 +84,22 @@ The Verilated model is built once and reused. All model builds and runs must
 use the machine-safe launchers described in verif/README.md. MAME reference
 captures are generated for every set by verif/run_mame_capture.ps1.
 
+The regression runner accepts `-Pcb`, `-PcbAudio`, `-PcbFramebuffer`, and
+`-CursorIrq` for the matching OSD paths. `verif/check_dorunrun_timing.ps1`
+performs the long rational-cadence, watchdog, third-CPU-copy, and CF-event
+check.
+
 ## Quartus status
 
-The single shared Universal_DoCastle RBF was built successfully with Quartus
-17.0.2 on 2026-07-29, but the compiled file is not distributed in this source
-repository. The fitter used 13,499/41,910 ALMs and
-2,890,289/5,662,720 memory bits. Worst setup slack is +0.002 ns, worst hold
-slack is +0.248 ns, and reported TNS is zero. All nine generated MRAs select
-this same RBF; the historical single-game image is isolated under
-releases/legacy.
+The enhanced shared Universal_DoCastle RBF was built successfully with Quartus
+17.0.2 Lite on 2026-07-29. The seed-4 Fast Fit uses 17,572/41,910 ALMs,
+4,119,089/5,662,720 block-memory bits, 517/553 RAM blocks, and 41/112 DSP
+blocks. Worst setup slack is +0.259 ns, worst hold slack is +0.251 ns, worst
+recovery slack is +4.223 ns, worst removal slack is +0.747 ns, worst minimum
+pulse-width slack is +1.122 ns, and TNS is zero in every reported domain.
+The generated RBF is 3,973,880 bytes with SHA-256
+`7552B2EFAB29DF148B5AC09C0FA7F317CE453BB52CA237F8BCB4B65BE785A69B`.
+All nine generated MRAs select this same RBF; the historical single-game image
+is isolated under `releases/legacy`.
 
 See docs/UNIVERSAL_DOCASTLE_PLAN.md, rtl/THIRD_PARTY.md, and LICENSE.

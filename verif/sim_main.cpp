@@ -66,6 +66,7 @@ static uint8_t expected_profile(uint8_t game_id) {
     if (game_id <= 1) return 0;
     if (game_id <= 6) return 1;
     if (game_id <= 8) return 2;
+    if (game_id == 9) return 1;
     return 0xff;
 }
 
@@ -74,7 +75,9 @@ int main(int argc, char** argv) {
     if (argc < 5) {
         std::cerr
             << "usage: Vdocastle_core <combined.rom> <game_id> <frames> <frame.ppm>"
-            << " [play] [audio.wav] [title.ppm] [attract.ppm]\n";
+            << " [play] [audio.wav] [title.ppm] [attract.ppm]"
+            << " [--pcb] [--pcb-audio] [--pcb-framebuffer]"
+            << " [--cursor-irq] [--timing-check] [--events=path.csv]\n";
         return 2;
     }
 
@@ -88,9 +91,24 @@ int main(int argc, char** argv) {
     const int wanted_frames = std::max(1, std::stoi(argv[3]));
     const std::string ppm_path = argv[4];
     const bool play = argc >= 6 && std::strcmp(argv[5], "play") == 0;
-    const std::string wav_path = argc >= 7 ? argv[6] : std::string();
-    const std::string title_path = argc >= 8 ? argv[7] : std::string();
-    const std::string attract_path = argc >= 9 ? argv[8] : std::string();
+    const std::string wav_path = argc >= 7 && std::strcmp(argv[6], "-") != 0 ? argv[6] : std::string();
+    const std::string title_path = argc >= 8 && std::strcmp(argv[7], "-") != 0 ? argv[7] : std::string();
+    const std::string attract_path = argc >= 9 && std::strcmp(argv[8], "-") != 0 ? argv[8] : std::string();
+    bool pcb = false;
+    bool pcb_audio = false;
+    bool pcb_framebuffer = false;
+    bool cursor_irq = false;
+    bool timing_check = false;
+    std::string event_path;
+    for (int i = 5; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--pcb") pcb = true;
+        else if (arg == "--pcb-audio") pcb_audio = true;
+        else if (arg == "--pcb-framebuffer") pcb_framebuffer = true;
+        else if (arg == "--cursor-irq") cursor_irq = true;
+        else if (arg == "--timing-check") timing_check = true;
+        else if (arg.rfind("--events=", 0) == 0) event_path = arg.substr(9);
+    }
 
     std::ifstream rom_file(rom_path, std::ios::binary);
     if (!rom_file) {
@@ -106,12 +124,16 @@ int main(int argc, char** argv) {
     Vdocastle_core top;
     top.reset = 1;
     top.pause = 0;
+    top.pcb_fidelity = pcb;
+    top.pcb_audio_filter = pcb_audio;
+    top.pcb_framebuffer = pcb_framebuffer;
+    top.pcb_cursor_irq = cursor_irq;
     top.ioctl_download = 0;
     top.ioctl_wr = 0;
     top.ioctl_index = 0;
     top.ioctl_addr = 0;
     top.ioctl_dout = 0;
-    top.dsw1 = game_id >= 7 ? 0xff : 0xdf;
+    top.dsw1 = (game_id >= 7) ? 0xff : 0xdf;
     top.dsw2 = 0xff;
     top.joys = 0xff;
     top.joys2 = 0xff;
@@ -160,11 +182,37 @@ int main(int argc, char** argv) {
     uint64_t nonblack_pixels = 0;
     uint64_t audio_nonzero = 0;
     uint64_t adpcm_strobes = 0;
+    uint64_t sprite_copies = 0;
+    uint64_t cf_writes = 0;
+    uint64_t cf_irq_rises = 0;
+    uint64_t watchdog_resets = 0;
+    uint64_t cursor_rises = 0;
+    uint64_t previous_frame_cycle = 0;
+    uint64_t shortest_frame = UINT64_MAX;
+    uint64_t longest_frame = 0;
     uint64_t longest_wait = 0;
     uint64_t current_wait = 0;
     uint16_t prev_main = top.main_pc_debug;
     uint16_t prev_sub = top.sub_pc_debug;
     uint16_t prev_sprite = top.sprite_pc_debug;
+    bool prev_cursor = top.crtc_cursor_debug;
+    bool prev_cf_irq = top.cf_irq_debug;
+    std::ofstream event_file;
+    if (!event_path.empty()) {
+        event_file.open(event_path);
+        if (!event_file) {
+            std::cerr << "cannot open event log: " << event_path << "\n";
+            return 2;
+        }
+        event_file << "cycle,event,value,main_pc,sub_pc,sprite_pc\n";
+    }
+    auto log_event = [&](const char* event, unsigned value) {
+        if (event_file) {
+            event_file << cycles << ',' << event << ',' << value << ','
+                       << std::hex << top.main_pc_debug << ',' << top.sub_pc_debug
+                       << ',' << top.sprite_pc_debug << std::dec << '\n';
+        }
+    };
     const uint64_t max_cycles = static_cast<uint64_t>(wanted_frames + 2) * 900000ULL;
     std::vector<int16_t> audio_samples;
     audio_samples.reserve(static_cast<std::size_t>(wanted_frames) * 805U);
@@ -187,6 +235,23 @@ int main(int argc, char** argv) {
             current_wait = 0;
         }
         if (top.adpcm_strobe_debug) ++adpcm_strobes;
+        if (top.sprite_copy_debug) { ++sprite_copies; log_event("sprite_copy", top.sprite_pc_debug); }
+        if (top.cf_write_debug) {
+            ++cf_writes;
+            log_event("cf_write", (unsigned(top.cf_addr_debug) << 8) | top.cf_data_debug);
+        }
+        if (top.cf_irq_debug && !prev_cf_irq) {
+            ++cf_irq_rises;
+            log_event("cf_irq", top.cf_reg2_debug);
+        }
+        if (top.crtc_write_debug) {
+            log_event("crtc_write", (unsigned(top.crtc_reg_debug) << 8) |
+                                      top.crtc_data_debug);
+        }
+        prev_cf_irq = top.cf_irq_debug;
+        if (top.watchdog_reset_debug) { ++watchdog_resets; log_event("watchdog_reset", 1); }
+        if (top.crtc_cursor_debug && !prev_cursor) { ++cursor_rises; log_event("cursor_rise", 1); }
+        prev_cursor = top.crtc_cursor_debug;
 
         if ((cycles & 1023U) == 0) {
             const int16_t sample = static_cast<int16_t>(top.audio);
@@ -206,6 +271,12 @@ int main(int argc, char** argv) {
 
         if (!prev_vblank && top.vblank) {
             ++frames;
+            if (previous_frame_cycle != 0) {
+                const uint64_t frame_cycles = cycles - previous_frame_cycle;
+                shortest_frame = std::min(shortest_frame, frame_cycles);
+                longest_frame = std::max(longest_frame, frame_cycles);
+            }
+            previous_frame_cycle = cycles;
             if (pixel != 240U * 192U) {
                 std::cerr << "frame " << frames << " has " << pixel
                           << " visible pixels, expected 46080\n";
@@ -260,6 +331,25 @@ int main(int argc, char** argv) {
         std::cerr << "main/sub handshake held WAIT for " << longest_wait << " master clocks\n";
         return 1;
     }
+    if (timing_check && frames > 2 &&
+        (shortest_frame < 823879ULL || longest_frame > 823882ULL)) {
+        std::cerr << "frame cadence outside rational-clock bounds: "
+                  << shortest_frame << ".." << longest_frame << " master clocks\n";
+        return 1;
+    }
+    if (timing_check && watchdog_resets != 0) {
+        std::cerr << "watchdog reset occurred during timing check\n";
+        return 1;
+    }
+    if (pcb && cf_writes == 0) {
+        std::cerr << "PCB sprite path had no CPU3/CF activity: copies="
+                  << sprite_copies << " cf_writes=" << cf_writes << "\n";
+        return 1;
+    }
+    if (pcb && top.cf_overrun_debug) {
+        std::cerr << "CF37201 descriptor timing overran the external /PL interval\n";
+        return 1;
+    }
     if (wanted_frames >= 120 && nonblack_pixels == 0) {
         std::cerr << "all captured frames through the title checkpoint were black\n";
         return 1;
@@ -281,6 +371,14 @@ int main(int argc, char** argv) {
               << " audio_samples_nonzero=" << audio_nonzero
               << " longest_wait=" << longest_wait
               << " adpcm_strobes=" << adpcm_strobes
+              << " sprite_copies=" << sprite_copies
+              << " cf_writes=" << cf_writes
+              << " cf_irqs=" << cf_irq_rises
+              << " cf_reg2=0x" << std::hex << int(top.cf_reg2_debug) << std::dec
+              << " cursor_rises=" << cursor_rises
+              << " watchdog_resets=" << watchdog_resets
+              << " frame_cycles=" << (shortest_frame == UINT64_MAX ? 0 : shortest_frame)
+              << ".." << longest_frame
               << "\n";
     return 0;
 }

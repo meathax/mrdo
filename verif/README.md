@@ -22,8 +22,10 @@ once under WSL:
       -DSIMULATION --top-module docastle_core --Mdir obj_dir_wsl \
       --threads 1 --verilate-jobs 4 --build-jobs 4 \
       rtl/docastle_profile.sv rtl/docastle_rom.sv rtl/docastle_main.sv \
-      rtl/docastle_sub.sv rtl/docastle_spritecpu.sv rtl/docastle_video.sv \
-      rtl/docastle_adpcm.sv rtl/docastle_core.sv rtl/jt89/*.v \
+      rtl/docastle_sub.sv rtl/docastle_spritecpu.sv rtl/docastle_cf37201.sv \
+      rtl/docastle_crtc.sv \
+      rtl/docastle_pcb_sprite.sv rtl/docastle_video.sv rtl/docastle_adpcm.sv \
+      rtl/docastle_audio_filter.sv rtl/docastle_core.sv rtl/jt89/*.v \
       rtl/jt5205/*.v verif/tv80/*.v verif/sim_main.cpp
 
 The generated model is single-threaded. Runtime changes to ROM, game ID,
@@ -46,6 +48,31 @@ Add -Play for the scripted coin/start sequence and WAV output. The harness
 checks the game/profile ID, 46,080 visible pixels per frame, all three CPU
 buses, main WAIT duration, renderer deadline, nonblack video, and ADPCM event
 count. It never enables tracing by default.
+
+The hardware-fidelity switches map directly to the OSD options:
+
+    -Pcb             # third-CPU copy, CF doorway and watchdog
+    -PcbAudio        # 48 kHz PCB output-stage approximation
+    -PcbFramebuffer  # experimental double-buffered CF field renderer
+    -CursorIrq       # experimental CRTC CURSOR interrupt source
+    -TimingCheck     # exact rational frame cadence and watchdog assertions
+    -EventLog        # bounded CSV event log
+
+For the long Do! Run Run cadence/event check, use:
+
+    powershell -ExecutionPolicy Bypass -File verif/check_dorunrun_timing.ps1 \
+      -Frames 361
+
+The parent `dorunrun` archive is covered. If both `dorunrun2.zip` and its split
+parent `dorunrun.zip` are available, the clone-specific packer and bounded test
+are run with:
+
+    powershell -ExecutionPolicy Bypass -File verif/check_dorunrun2_sequence.ps1
+
+The clone manifest validates every ROM CRC/SHA-1 and assigns internal test ID
+9 without adding a release MRA. The 12-round observation checklist is in
+`verif/dorunrun2_sequence_oracle.md`. The archive is currently unavailable and
+no physical PCB exists, so that one real-board oracle is explicitly deferred.
 
 ## MAME references
 

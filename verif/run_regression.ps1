@@ -2,10 +2,16 @@ param(
 	[string]$SetName = "all",
 	[int]$Frames = 5,
 	[switch]$Play,
+	[switch]$Pcb,
+	[switch]$PcbAudio,
+	[switch]$PcbFramebuffer,
+	[switch]$CursorIrq,
+	[switch]$TimingCheck,
+	[switch]$EventLog,
 	[string]$Manifest = (Join-Path (Split-Path -Parent $PSScriptRoot) "scripts\romsets.json"),
 	[string]$WslDistribution = "Ubuntu",
-	[string]$VerilatorSafe = $(if ($env:VERILATOR_SAFE) { $env:VERILATOR_SAFE } else { "verilator-safe" }),
-	[string]$VerilatorSimSafe = $(if ($env:VERILATOR_SIM_SAFE) { $env:VERILATOR_SIM_SAFE } else { "verilator-sim-safe" })
+	[string]$VerilatorSafe = $(if ($env:VERILATOR_SAFE) { $env:VERILATOR_SAFE } else { "/home/meath/.local/bin/verilator-safe" }),
+	[string]$VerilatorSimSafe = $(if ($env:VERILATOR_SIM_SAFE) { $env:VERILATOR_SIM_SAFE } else { "/home/meath/.local/bin/verilator-sim-safe" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -50,6 +56,15 @@ foreach ($game in $requested) {
 		$arguments += "verif/out/$($game.set)_title.ppm"
 		$arguments += "verif/out/$($game.set)_attract.ppm"
 	}
+	if (($Pcb -or $PcbAudio -or $PcbFramebuffer -or $CursorIrq -or $TimingCheck -or $EventLog) -and !$Play) {
+		$arguments += @("none", "-", "-", "-")
+	}
+	if ($Pcb) { $arguments += "--pcb" }
+	if ($PcbAudio) { $arguments += "--pcb-audio" }
+	if ($PcbFramebuffer) { $arguments += "--pcb-framebuffer" }
+	if ($CursorIrq) { $arguments += "--cursor-irq" }
+	if ($TimingCheck) { $arguments += "--timing-check" }
+	if ($EventLog) { $arguments += "--events=verif/out/$($game.set)_events.csv" }
 
 	Write-Host "Running $($game.set), ID $($game.id), $Frames frames"
 	$runTag = if ($Play) { "play$Frames" } else { "frame$Frames" }

@@ -11,6 +11,8 @@ module docastle_video
 	input         clk,
 	input         reset,
 	input         ce_pix,
+	input         cursor_irq_mode,
+	input         pcb_framebuffer,
 	input         flipscreen,
 	input         low_pen_priority,
 	input         soccer_sprites,
@@ -26,10 +28,13 @@ module docastle_video
 	input   [8:0] sprite_cpu_addr,
 	input   [7:0] sprite_cpu_din,
 	input         sprite_cpu_we,
+	input   [8:0] pcb_sprite_addr,
+	input   [7:0] pcb_sprite_din,
+	input         pcb_sprite_we,
 
 	output [13:0] char_addr,
 	input   [7:0] char_q,
-	output reg [16:0] sprite_gfx_addr,
+	output [16:0] sprite_gfx_addr,
 	input   [7:0] sprite_gfx_q,
 	output  [7:0] prom_addr,
 	input   [7:0] prom_q,
@@ -50,86 +55,29 @@ module docastle_video
 	output reg    sprite_nmi_req,
 	output  [8:0] h_count_debug,
 	output  [8:0] v_count_debug,
+	output        cursor_debug,
 	output        renderer_busy_debug,
-	output reg    renderer_overrun_debug
+	output        renderer_overrun_debug
 );
 
-reg [8:0] h_count;
-reg [8:0] v_count;
+wire [8:0] h_count;
+wire [8:0] v_count;
 assign h_count_debug = h_count;
 assign v_count_debug = v_count;
 
-assign hblank = (h_count < 9'd8) || (h_count >= 9'd248);
-assign vblank = v_count >= 9'd192;
-reg [8:0] crtc_vsync_line;
-reg [4:0] crtc_vsync_width;
-reg [8:0] crtc_hsync_start;
-reg [7:0] crtc_hsync_width;
-reg [13:0] crtc_start;
-wire [8:0] vs_end = crtc_vsync_line + {4'b0000,crtc_vsync_width};
-wire [9:0] hs_end = {1'b0,crtc_hsync_start} + {2'b00,crtc_hsync_width};
-assign hs = ({1'b0,h_count} >= {1'b0,crtc_hsync_start}) && ({1'b0,h_count} < hs_end);
-assign vs = (v_count >= crtc_vsync_line) && (v_count < vs_end);
-assign main_irq_n = ~vs;
-
-always @(posedge clk) begin
-	if (reset) begin
-		h_count <= 0;
-		v_count <= 0;
-		crtc_vsync_line <= 9'd192;
-		crtc_vsync_width <= 5'd4;
-		crtc_hsync_start <= 9'd272;
-		crtc_hsync_width <= 8'd16;
-		crtc_start <= 14'h0080;
-	end else begin
-		if (crtc_we) begin
-			case (crtc_reg)
-				5'd2:  crtc_hsync_start <= {crtc_data[5:0],3'b000};
-				5'd3: begin
-					crtc_hsync_width <= (crtc_data[3:0] != 4'd0) ? {1'b0,crtc_data[3:0],3'b000} : 8'd128;
-					crtc_vsync_width <= (crtc_data[7:4] != 4'd0) ? {1'b0,crtc_data[7:4]} : 5'd16;
-				end
-				5'd7:  crtc_vsync_line <= {crtc_data[5:0],3'b000};
-				5'd12: crtc_start[13:8] <= crtc_data[5:0];
-				5'd13: crtc_start[7:0]  <= crtc_data;
-				default: ;
-			endcase
-		end
-
-		if (ce_pix) begin
-			if (h_count == 9'd311) begin
-				h_count <= 0;
-				if (v_count == 9'd263) v_count <= 0;
-				else v_count <= v_count + 1'd1;
-			end else h_count <= h_count + 1'd1;
-		end
-	end
-end
-
-// CRTC-derived interrupts. The main/sprite event is VSYNC. The sub CPU
-// receives a held interrupt whenever MA6 rises at HSYNC, matching MAME's
-// docastle_tint callback and the service schematic. MAME's get_ma() includes
-// the live character counter (34 at the programmed HSYNC position), not just
-// the 32-character row base.
-wire [13:0] crtc_ma = crtc_start + {3'b000,v_count[8:3],5'b00000}
-	+ {8'd0,crtc_hsync_start[8:3]};
-reg prev_ma6;
-always @(posedge clk) begin
-	if (reset) begin
-		prev_ma6 <= 0;
-		sub_irq_req <= 0;
-		sprite_nmi_req <= 0;
-	end else begin
-		sub_irq_req <= 0;
-		sprite_nmi_req <= 0;
-		if (ce_pix && (h_count == crtc_hsync_start)) begin
-			if (crtc_ma[6] && !prev_ma6) sub_irq_req <= 1;
-			prev_ma6 <= crtc_ma[6];
-		end
-		if (ce_pix && (h_count == 0) && (v_count == crtc_vsync_line))
-			sprite_nmi_req <= 1;
-	end
-end
+wire crtc_cursor;
+assign cursor_debug = crtc_cursor;
+wire [13:0] crtc_ma;
+wire [4:0] crtc_ra;
+docastle_crtc crtc
+(
+	.clk(clk), .reset(reset), .ce_pix(ce_pix), .cursor_irq_mode(cursor_irq_mode),
+	.reg_sel(crtc_reg), .reg_data(crtc_data), .reg_we(crtc_we),
+	.h_count(h_count), .v_count(v_count), .hs(hs), .vs(vs),
+	.hblank(hblank), .vblank(vblank), .cursor(crtc_cursor),
+	.ma(crtc_ma), .ra(crtc_ra), .main_irq_n(main_irq_n),
+	.sub_irq_req(sub_irq_req), .sprite_nmi_req(sprite_nmi_req)
+);
 
 // CPU-visible tile, colour and sprite RAM.
 (* ramstyle = "M10K, no_rw_check" *) reg [7:0] video_ram [0:1023];
@@ -192,7 +140,9 @@ localparam ST_GREQ  = 3'd3;
 localparam ST_GWAIT = 3'd4;
 localparam ST_GUSE  = 3'd5;
 reg [2:0] render_state;
-assign renderer_busy_debug = render_state != ST_IDLE;
+wire line_busy = render_state != ST_IDLE;
+reg line_overrun;
+reg [16:0] line_gfx_addr;
 reg prep_bank;
 reg [8:0] target_y;
 reg [6:0] clear_x;
@@ -258,27 +208,44 @@ wire [9:0] line0_even_q = line0_even[line0_even_addr];
 wire [9:0] line0_odd_q  = line0_odd[line0_odd_addr];
 wire [9:0] line1_even_q = line1_even[line1_even_addr];
 wire [9:0] line1_odd_q  = line1_odd[line1_odd_addr];
-wire [9:0] sprite_pixel = v_count[0]
+wire [9:0] line_sprite_pixel = v_count[0]
 	? (bitmap_x[0] ? line1_odd_q : line1_even_q)
 	: (bitmap_x[0] ? line0_odd_q : line0_even_q);
+
+wire [16:0] pcb_gfx_addr;
+wire [9:0] pcb_sprite_pixel;
+wire pcb_busy, pcb_overrun, pcb_frame_ready;
+docastle_pcb_sprite pcb_sprite
+(
+	.clk(clk), .reset(reset), .ce_pix(ce_pix), .enable(pcb_framebuffer),
+	.h_count(h_count), .v_count(v_count), .vblank(vblank),
+	.flipscreen(flipscreen), .soccer_sprites(soccer_sprites),
+	.cpu_addr(pcb_sprite_addr), .cpu_data(pcb_sprite_din), .cpu_we(pcb_sprite_we),
+	.gfx_addr(pcb_gfx_addr), .gfx_q(sprite_gfx_q), .pixel(pcb_sprite_pixel),
+	.busy(pcb_busy), .overrun(pcb_overrun), .frame_ready(pcb_frame_ready)
+);
+assign sprite_gfx_addr = pcb_framebuffer ? pcb_gfx_addr : line_gfx_addr;
+assign renderer_busy_debug = pcb_framebuffer ? pcb_busy : line_busy;
+assign renderer_overrun_debug = pcb_framebuffer ? pcb_overrun : line_overrun;
+wire [9:0] sprite_pixel = pcb_framebuffer ? pcb_sprite_pixel : line_sprite_pixel;
 
 always @(posedge clk) begin
 	if (reset) begin
 		render_state <= ST_IDLE;
-		renderer_overrun_debug <= 0;
+		line_overrun <= 0;
 		prep_bank <= 0;
 		target_y <= 0;
 		clear_x <= 0;
 		scan_index <= 0;
 		byte_index <= 0;
-		sprite_gfx_addr <= 0;
+		line_gfx_addr <= 0;
 	end else begin
-		if (ce_pix && (h_count == 0) && (render_state != ST_IDLE))
-			renderer_overrun_debug <= 1;
+		if (!pcb_framebuffer && ce_pix && (h_count == 0) && (render_state != ST_IDLE))
+			line_overrun <= 1;
 
 		// Begin rendering line N+1 as line N starts. 3120 master-clock
 		// slots are available, enough for clear + all 128 sprite entries.
-		if (ce_pix && (h_count == 0)) begin
+		if (!pcb_framebuffer && ce_pix && (h_count == 0)) begin
 			prep_bank <= ~v_count[0];
 			target_y <= (v_count == 9'd263) ? 9'd0 : v_count + 1'd1;
 			clear_x <= 0;
@@ -313,7 +280,7 @@ always @(posedge clk) begin
 				else scan_index <= scan_index - 1'd1;
 			end
 			ST_GREQ: begin
-				sprite_gfx_addr <= {active_code,7'b0000000}
+				line_gfx_addr <= {active_code,7'b0000000}
 					+ {10'd0,active_row,3'b000} + {14'd0,byte_index};
 				render_state <= ST_GWAIT;
 			end
@@ -339,7 +306,7 @@ always @(posedge clk) begin
 					// synchronous ROM updates during ST_GWAIT, reducing each
 					// remaining byte from three master clocks to two. Even all
 					// 128 sprites on one line now finish well before the next line.
-					sprite_gfx_addr <= {active_code,7'b0000000}
+					line_gfx_addr <= {active_code,7'b0000000}
 						+ {10'd0,active_row,3'b000}
 						+ {14'd0,byte_index} + 17'd1;
 					render_state <= ST_GWAIT;

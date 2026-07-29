@@ -152,14 +152,64 @@ The new gameplay PPM and WAV are byte-identical to the pre-timing captures:
 
 ## Hardware deployment status
 
-The timing-clean universal RBF and all nine MRAs have been exercised through
-the normal MiSTer deployment layout. Host addresses, credentials, local paths,
-and compiled bitstreams are intentionally not included in this source-only
-repository. Deploy the RBF to `_Arcade/cores/` and the MRAs to `_Arcade/` by
-SSH/SMB, a mounted SD card, or another standard MiSTer transfer method.
+The enhanced timing-clean universal RBF has not been exercised on a physical
+MiSTer/PCB because no board is available. All nine MRAs target the same RBF.
+When hardware becomes available, deploy it to `_Arcade/cores/` and the MRAs to
+`_Arcade/` by SSH/SMB, a mounted SD card, or another standard MiSTer transfer
+method, then complete the deferred controls, video and audio audit.
 
 ## Known fidelity boundary
 
-The dumped 8301 sprite CPU executes, while its custom external doorway remains
-a no-op matching current MAME. Board-level analogue filtering is not emulated.
-These are documented fidelity limits rather than untested logic paths.
+The validated release renderer remains the direct MAME-equivalent path. PCB
+support now exercises the dumped 8301 CPU's protected 0x200-byte copy, its
+0xc000-C7ff custom-chip doorway, a synchronous decap-informed CF37201 model,
+and the main-board watchdog. A double-buffered CF field renderer and the
+schematic CURSOR interrupt are separately selectable experiments because they
+do not yet outperform the validated defaults. A switchable 48 kHz digital
+approximation of the board's AC-coupled audio output stage is included; it is
+not a component-tolerance SPICE model.
+
+Physical-board comparison remains deferred because no PCB is available.
+
+## 2026 PCB-fidelity enhancement audit
+
+All nine supplied parent sets completed 20-frame PCB-support smoke tests with
+the exact 46,080-pixel active raster, correct 823,881/823,882-cycle rational
+frame cadence, no renderer deadline error, and no watchdog reset. Different
+games exercised different amounts of third-CPU copying and CF traffic, as
+expected from their program ROMs.
+
+Do! Run Run then completed a 361-frame bounded timing run with VSYNC interrupts
+after the final CF37201 interrupt re-arm behavior was enabled:
+
+- 297,196,367 master cycles
+- 823,881 to 823,882 cycles per frame
+- 4 protected staging-to-work copy events
+- 248,404 real CF doorway writes
+- 61,921 CF `/PL` interrupts acknowledged by the third Z80
+- zero watchdog resets
+
+The same test with the CRTC CURSOR interrupt coupled into the production path
+stalled after the game wrote zero to all 16 CRTC registers. CURSOR therefore
+remains explicitly experimental and VSYNC remains the validated default. The
+decap-informed renderer now uses both complete 64K fields and only genuine CF
+bus traffic, but still omits the central CASTLE title sprite; it likewise
+remains opt-in while the proven renderer stays enabled in normal PCB support.
+
+The `dorunrun2` clone has a dedicated split-archive manifest and bounded
+sequence runner. Its ROM archive is not present, and no physical PCB is
+available, so the MAME-documented 12-round real-board behavior is not claimed.
+
+The enhanced universal netlist initially exposed a -7.479 ns optional-audio
+path because two IIR multiplies and the clamp were inferred in one clock. The
+same 48 kHz filter calculation was split across six 49.152 MHz cycles, retaining
+its coefficients while leaving more than 1,000 cycles between samples. The
+final seed-4 Lite build reports +2.966 ns setup margin for the game clock and
++0.259 ns worst setup overall. Hold (+0.251 ns), recovery (+4.223 ns), removal
+(+0.747 ns), and minimum pulse width (+1.122 ns) are also positive, with zero
+TNS. It uses 17,572 ALMs, 25,596 registers, 4,119,089 block-memory bits, 517 RAM
+blocks and 41 DSP blocks. The two experimental fields store the board's eight
+colour/pen bits plus one private occupancy flag; the mask-visible flag is
+losslessly reconstructed from the pen, saving 16 RAM blocks versus the first
+full-field candidate. The promoted 3,973,880-byte RBF has SHA-256
+`7552B2EFAB29DF148B5AC09C0FA7F317CE453BB52CA237F8BCB4B65BE785A69B`.

@@ -6,6 +6,10 @@ module docastle_core
 	input         clk,
 	input         reset,
 	input         pause,
+	input         pcb_fidelity,
+	input         pcb_audio_filter,
+	input         pcb_framebuffer,
+	input         pcb_cursor_irq,
 
 	input         ioctl_download,
 	input         ioctl_wr,
@@ -42,7 +46,19 @@ module docastle_core
 	output        profile_valid_debug,
 	output        adpcm_busy_debug,
 	output [17:0] adpcm_nibble_debug,
-	output        adpcm_strobe_debug
+	output        adpcm_strobe_debug,
+	output        watchdog_reset_debug,
+	output        sprite_copy_debug,
+	output        cf_write_debug,
+	output        cf_irq_debug,
+	output        cf_overrun_debug,
+	output  [7:0] cf_reg2_debug,
+	output [10:0] cf_addr_debug,
+	output  [7:0] cf_data_debug,
+	output        crtc_write_debug,
+	output  [4:0] crtc_reg_debug,
+	output  [7:0] crtc_data_debug,
+	output        crtc_cursor_debug
 );
 
 reg [7:0] game_id = 8'h00;
@@ -75,7 +91,23 @@ docastle_profile profile_decode
 	.native_vertical(native_vertical)
 );
 
-wire machine_reset = reset | !profile_valid | !game_id_loaded;
+wire base_reset = reset | !profile_valid | !game_id_loaded;
+reg [23:0] watchdog_count;
+reg watchdog_reset;
+wire watchdog_kick;
+wire machine_reset = base_reset | watchdog_reset;
+assign watchdog_reset_debug = watchdog_reset;
+always @(posedge clk) begin
+	watchdog_reset <= 0;
+	if (base_reset || pause || !pcb_fidelity || watchdog_kick)
+		watchdog_count <= 0;
+	else if (ce_cpu) begin
+		if (watchdog_count >= 24'd11999999) begin
+			watchdog_count <= 0;
+			watchdog_reset <= 1;
+		end else watchdog_count <= watchdog_count + 1'd1;
+	end
+end
 assign game_id_debug = game_id;
 assign profile_debug = profile;
 assign profile_valid_debug = profile_valid & game_id_loaded;
@@ -86,6 +118,8 @@ assign profile_valid_debug = profile_valid & game_id_loaded;
 //   CPU/PSG: 49.152 MHz * 125 / 1536 = 4.000 MHz
 reg [12:0] pix_phase;
 reg ce_pix_r;
+reg [12:0] mclk_phase;
+reg ce_mclk;
 reg [10:0] cpu_phase;
 reg ce_cpu;
 assign ce_pix = ce_pix_r;
@@ -94,6 +128,8 @@ always @(posedge clk) begin
 	if (machine_reset) begin
 		pix_phase <= 0;
 		ce_pix_r <= 0;
+		mclk_phase <= 0;
+		ce_mclk <= 0;
 		cpu_phase <= 0;
 		ce_cpu <= 0;
 	end else begin
@@ -102,6 +138,14 @@ always @(posedge clk) begin
 			pix_phase <= pix_phase - 13'd7373;
 			ce_pix_r <= 1;
 		end else pix_phase <= pix_phase + 13'd819;
+
+		// CF37201 and its external /PL counter use the 9.828 MHz MCLK,
+		// exactly twice the pixel rate and phase-accumulated from the PLL.
+		ce_mclk <= 0;
+		if (mclk_phase >= 13'd6554) begin
+			mclk_phase <= mclk_phase - 13'd6554;
+			ce_mclk <= 1;
+		end else mclk_phase <= mclk_phase + 13'd1638;
 
 		ce_cpu <= 0;
 		if (cpu_phase >= 11'd1411) begin
@@ -171,6 +215,17 @@ wire main_m1_n, main_iorq_n, sub_m1_n, sub_iorq_n;
 wire main_irq_n;
 wire sub_irq_req;
 wire sprite_nmi_req;
+wire [8:0] sprite_copy_addr;
+wire [7:0] sprite_copy_data;
+wire sprite_copy_we;
+wire [10:0] cf_addr;
+wire [7:0] cf_data;
+wire cf_we, cf_irq_req, cf_irq_ack;
+wire [7:0] cf_dram_addr;
+wire [4:0] cf_palette;
+wire cf_flip_x, cf_flip_y, cf_plus_one, cf_serial_invert;
+wire cf_busy, cf_overrun;
+wire [8:0] h_count_debug_wire, v_count_debug_wire;
 reg sub_irq_n;
 wire sub_iack = ~sub_m1_n & ~sub_iorq_n;
 wire [7:0] adpcm_status;
@@ -198,8 +253,8 @@ docastle_main main_cpu
 	.video_addr(video_addr), .video_din(video_din), .video_dout(video_q), .video_we(video_we),
 	.color_addr(color_addr), .color_din(color_din), .color_dout(color_q), .color_we(color_we),
 	.adpcm_status(adpcm_status), .adpcm_wr(adpcm_wr), .adpcm_data(adpcm_data),
-	.crtc_reg(crtc_reg), .crtc_data(crtc_data), .crtc_we(crtc_we),
-	.sub_nmi_req(sub_nmi_req),
+		.crtc_reg(crtc_reg), .crtc_data(crtc_data), .crtc_we(crtc_we),
+		.sub_nmi_req(sub_nmi_req), .watchdog_kick(watchdog_kick),
 	.cpu_addr_debug(main_pc_debug), .m1_n_debug(main_m1_n), .iorq_n_debug(main_iorq_n)
 );
 
@@ -221,25 +276,56 @@ docastle_sub sub_cpu
 docastle_spritecpu sprite_cpu
 (
 	.clk(clk), .reset(machine_reset), .ce_cpu(ce_cpu), .pause(pause),
-	.nmi_req(sprite_nmi_req), .rom_q(sprite_rom_q), .rom_addr(sprite_rom_addr),
+	.pcb_fidelity(pcb_fidelity), .nmi_req(sprite_nmi_req), .cf_irq_req(cf_irq_req),
+	.main_addr(spr_addr), .main_data(spr_din), .main_we(spr_we),
+	.rom_q(sprite_rom_q), .rom_addr(sprite_rom_addr),
+	.copy_addr(sprite_copy_addr), .copy_data(sprite_copy_data), .copy_we(sprite_copy_we),
+	.cf_addr(cf_addr), .cf_data(cf_data), .cf_we(cf_we),
+	.cf_irq_ack(cf_irq_ack),
 	.cpu_addr_debug(sprite_pc_debug)
 );
 
-wire [8:0] h_count_unused, v_count_unused;
+assign sprite_copy_debug = sprite_copy_we;
+assign cf_write_debug = cf_we;
+assign cf_irq_debug = cf_irq_req;
+assign cf_overrun_debug = cf_overrun;
+assign cf_addr_debug = cf_addr;
+assign cf_data_debug = cf_data;
+assign crtc_write_debug = crtc_we;
+assign crtc_reg_debug = crtc_reg;
+assign crtc_data_debug = crtc_data;
+
+docastle_cf37201 cf37201
+(
+	.clk(clk), .reset(machine_reset), .ce_mclk(ce_mclk), .bus_we(cf_we),
+	.bus_addr(cf_addr[1:0]), .bus_data(cf_data),
+	.frame_parity(v_count_debug_wire[0]), .irq_ack(cf_irq_ack),
+	.irq_req(cf_irq_req), .dram_addr(cf_dram_addr), .palette(cf_palette),
+	.flip_x(cf_flip_x), .flip_y(cf_flip_y), .plus_one(cf_plus_one),
+	.serial_invert(cf_serial_invert), .busy(cf_busy), .overrun(cf_overrun),
+	.reg2_debug(cf_reg2_debug)
+);
+
 docastle_video video
 (
-	.clk(clk), .reset(machine_reset), .ce_pix(ce_pix_r), .flipscreen(flipscreen),
+	.clk(clk), .reset(machine_reset), .ce_pix(ce_pix_r),
+	.cursor_irq_mode(pcb_cursor_irq), .pcb_framebuffer(pcb_framebuffer), .flipscreen(flipscreen),
 	.low_pen_priority(low_pen_priority), .soccer_sprites(soccer_sprites),
 	.video_cpu_addr(video_addr), .video_cpu_din(video_din), .video_cpu_we(video_we), .video_cpu_q(video_q),
 	.color_cpu_addr(color_addr), .color_cpu_din(color_din), .color_cpu_we(color_we), .color_cpu_q(color_q),
 	.sprite_cpu_addr(spr_addr), .sprite_cpu_din(spr_din), .sprite_cpu_we(spr_we),
+	.pcb_sprite_addr(cf_addr[8:0]), .pcb_sprite_din(cf_data),
+	// C000-C1FF is the physical 512-byte sprite doorway.  C432 is the
+	// protection/CF control latch and must never corrupt sprite RAM.
+	.pcb_sprite_we(cf_we && (cf_addr < 11'h200)),
 	.char_addr(char_addr), .char_q(char_q),
 	.sprite_gfx_addr(sprite_gfx_addr), .sprite_gfx_q(sprite_gfx_q),
 	.prom_addr(prom_addr), .prom_q(prom_q),
 	.crtc_reg(crtc_reg), .crtc_data(crtc_data), .crtc_we(crtc_we),
 	.r(r), .g(g), .b(b), .hs(hs), .vs(vs), .hblank(hblank), .vblank(vblank),
 	.main_irq_n(main_irq_n), .sub_irq_req(sub_irq_req), .sprite_nmi_req(sprite_nmi_req),
-	.h_count_debug(h_count_unused), .v_count_debug(v_count_unused),
+	.h_count_debug(h_count_debug_wire), .v_count_debug(v_count_debug_wire),
+	.cursor_debug(crtc_cursor_debug),
 	.renderer_busy_debug(renderer_busy_debug),
 	.renderer_overrun_debug(renderer_overrun_debug)
 );
@@ -271,7 +357,15 @@ always @(*) begin
 	else
 		mixed_audio = full_mix[15:0];
 end
-assign audio = (machine_reset || pause) ? 16'sd0 : mixed_audio;
+wire signed [15:0] filtered_audio;
+docastle_audio_filter pcb_filter
+(
+	.clk(clk), .reset(machine_reset), .enable(pcb_audio_filter),
+	.sample_in(mixed_audio), .sample_out(filtered_audio)
+);
+assign audio = (machine_reset || pause) ? 16'sd0 : filtered_audio;
 
-wire _unused = main_m1_n | main_iorq_n | has_joys2 | native_vertical;
+wire _unused = main_m1_n | main_iorq_n | has_joys2 | native_vertical |
+	|cf_dram_addr | |cf_palette | cf_flip_x | cf_flip_y | cf_plus_one |
+	cf_serial_invert | cf_busy | cf_overrun;
 endmodule

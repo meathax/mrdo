@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "mameDriver": "src/mame/universal/docastle.cpp",
+  "imageSize": 295936,
+  "sets": [
+    {
+      "id": 9,
+      "set": "dorunrun2",
+      "zip": "dorunrun2.zip",
+      "zipSources": ["dorunrun2.zip", "dorunrun.zip"],
+      "name": "Do! Run Run (set 2 board-sequence oracle)",
+      "profile": "runrun",
+      "rotation": "horizontal",
+      "dsw1": "FF",
+      "dsw2": "FF",
+      "parts": [
+        {"name":"p1", "region":"maincpu", "regionOffset":0, "streamOffset":0, "length":8192, "crc32":"12a99365", "sha1":"12a1ab76182faa4f76cc5020913ca5706313fe72"},
+        {"name":"l1", "region":"maincpu", "regionOffset":16384, "streamOffset":16384, "length":8192, "crc32":"38609287", "sha1":"85f5cd707d620780436e4bed00753acef08f83cd"},
+        {"name":"k1", "region":"maincpu", "regionOffset":24576, "streamOffset":24576, "length":8192, "crc32":"099aaf54", "sha1":"c0419db2a2349ecb97c31256811993d1dcf3dc6e"},
+        {"name":"n1", "region":"maincpu", "regionOffset":32768, "streamOffset":32768, "length":8192, "crc32":"4f8fcbae", "sha1":"c1558664e081252141530e1932403df1fbf5f8a0"},
+        {"name":"27128.p7", "region":"subcpu", "regionOffset":0, "streamOffset":65536, "length":16384, "crc32":"8b06d461", "sha1":"2434478810c6301197997be76505f5fc6beba5d3"},
+        {"name":"bprom2.bin", "region":"spritecpu", "regionOffset":0, "streamOffset":81920, "length":512, "crc32":"2747ca77", "sha1":"abc0ca05925974c4b852827605ee2f1caefb8524"},
+        {"name":"27128.a3", "region":"gfx1", "regionOffset":0, "streamOffset":82432, "length":16384, "crc32":"4be96dcf", "sha1":"f9b45e6297cbbc4d1ee2df7ac377c5daf5181b0f"},
+        {"name":"2764.m4", "region":"gfx2", "regionOffset":0, "streamOffset":98816, "length":8192, "crc32":"4bb231a0", "sha1":"350423a1e602e23b229095021942d4b14a4736a7"},
+        {"name":"2764.l4", "region":"gfx2", "regionOffset":8192, "streamOffset":107008, "length":8192, "crc32":"0c08508a", "sha1":"1e235a0f44207c53af2c8da631e5a8e08b231258"},
+        {"name":"2764.j4", "region":"gfx2", "regionOffset":16384, "streamOffset":115200, "length":8192, "crc32":"79287039", "sha1":"e2e3c056f35a22e48115557e10fcd172ad2f91f1"},
+        {"name":"2764.h4", "region":"gfx2", "regionOffset":24576, "streamOffset":123392, "length":8192, "crc32":"523aa999", "sha1":"1d4aa0af79a2ed7b935d4ce92d978bf738f08eb3"},
+        {"name":"dorunrun.clr", "region":"proms", "regionOffset":0, "streamOffset":295424, "length":256, "crc32":"d5bab5d5", "sha1":"7a465fe30b6008793d33f6e07086c89111e1e407"}
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 param(
 	[string]$WslDistribution = "Ubuntu",
-	[string]$VerilatorSafe = $(if ($env:VERILATOR_SAFE) { $env:VERILATOR_SAFE } else { "verilator-safe" })
+	[string]$VerilatorSafe = $(if ($env:VERILATOR_SAFE) { $env:VERILATOR_SAFE } else { "/home/meath/.local/bin/verilator-safe" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,6 +16,9 @@ if ($LASTEXITCODE -ne 0) {
 
 $sources = @(
 	"verif/mister_wrapper_stubs.sv",
+	"rtl/crt_adjust.sv",
+	"sys/math.sv",
+	"sys/video_freak.sv",
 	"Universal_DoCastle.sv",
 	"rtl/pause.v",
 	"rtl/docastle_profile.sv",
@@ -24,8 +27,12 @@ $sources = @(
 	"rtl/docastle_main.sv",
 	"rtl/docastle_sub.sv",
 	"rtl/docastle_spritecpu.sv",
+	"rtl/docastle_cf37201.sv",
+	"rtl/docastle_crtc.sv",
+	"rtl/docastle_pcb_sprite.sv",
 	"rtl/docastle_video.sv",
 	"rtl/docastle_adpcm.sv",
+	"rtl/docastle_audio_filter.sv",
 	"rtl/docastle_core.sv",
 	"rtl/jt89/jt12_comb.v",
 	"rtl/jt89/jt12_dac2.v",

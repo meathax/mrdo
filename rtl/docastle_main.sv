@@ -42,6 +42,7 @@ module docastle_main
 	output reg [7:0] crtc_data,
 	output reg       crtc_we,
 	output reg       sub_nmi_req,
+	output           watchdog_kick,
 
 	output [15:0] cpu_addr_debug,
 	output        m1_n_debug,
@@ -110,6 +111,7 @@ wire color_cs = is_runrun
 	: ((cpu_addr[15:12] == 4'hb) && cpu_addr[10]);
 wire adpcm_cs = is_soccer && (cpu_addr == 16'hc000);
 wire nmi_cs = is_runrun ? (cpu_addr == 16'hb800) : (cpu_addr == 16'he000);
+wire watchdog_cs = cpu_addr == 16'ha800;
 
 (* ramstyle = "M10K, no_rw_check" *) reg [7:0] work_ram [0:6143];
 reg [7:0] work_q;
@@ -136,6 +138,7 @@ assign comm_write  = wr_edge & comm_cs;
 assign comm_dout   = cpu_dout;
 assign adpcm_wr    = wr_edge & adpcm_cs;
 assign adpcm_data  = cpu_dout;
+assign watchdog_kick = wr_edge & watchdog_cs;
 
 always @(*) begin
 	cpu_din = 8'hff;

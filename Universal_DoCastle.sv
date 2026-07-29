@@ -102,7 +102,18 @@ localparam CONF_STR = {
 	"H0O2,Orientation,Vert,Horz;",
 	"O1,Rotate,CCW,CW;",
 	"H0OMN,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
+	"H0O27,Scaling,Normal,Integer;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"O[102],PCB support,Off,On;",
+	"O[103],PCB audio stage,Off,On;",
+	"O[104],Experimental CF framebuffer,Off,On;",
+	"O[105],Experimental IRQ,VSYNC,CURSOR;",
+	"-;",
+	"P2,CRT Adjust;",
+	"P2O[101],Enable,Off,On;",
+	"H1P2O[100:96],CRT H-Size,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
+	"H1P2O[85:79],CRT H-Position,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,+33,+34,+35,+36,+37,+38,+39,+40,+41,+42,+43,+44,+45,+46,+47,+48,-48,-47,-46,-45,-44,-43,-42,-41,-40,-39,-38,-37,-36,-35,-34,-33,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
+	"H1P2O[78:74],CRT V-Shift,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -139,7 +150,7 @@ wire [21:0] gamma_bus;
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys), .HPS_BUS(HPS_BUS), .buttons(hps_buttons), .status(status),
-	.status_menumask({15'd0,direct_video}), .forced_scandoubler(forced_scandoubler),
+	.status_menumask({14'd0,~status[101],direct_video}), .forced_scandoubler(forced_scandoubler),
 	.gamma_bus(gamma_bus), .direct_video(direct_video), .video_rotated(video_rotated),
 	.ioctl_download(ioctl_download), .ioctl_wr(ioctl_wr), .ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout), .ioctl_index(ioctl_index),
@@ -206,6 +217,10 @@ docastle_analog p2_right_analog
 );
 
 wire [7:0] game_id_wire;
+wire pcb_fidelity = status[102];
+wire pcb_audio_filter = status[103];
+wire pcb_framebuffer = status[104];
+wire pcb_cursor_irq = status[105];
 wire soccer_mode = (game_id_wire == 8'h07) || (game_id_wire == 8'h08);
 wire [7:0] soccer_left_joys = ~{
 	p2_down|p2_la_down,p2_left|p2_la_left,p2_up|p2_la_up,p2_right|p2_la_right,
@@ -236,6 +251,8 @@ pause #(8,8,8,49) pause
 docastle_core core
 (
 	.clk(clk_sys), .reset(core_reset), .pause(pause_cpu),
+	.pcb_fidelity(pcb_fidelity), .pcb_audio_filter(pcb_audio_filter),
+	.pcb_framebuffer(pcb_framebuffer), .pcb_cursor_irq(pcb_cursor_irq),
 	.ioctl_download(ioctl_download), .ioctl_wr(ioctl_wr), .ioctl_index(ioctl_index[7:0]),
 	.ioctl_addr(ioctl_addr[24:0]), .ioctl_dout(ioctl_dout),
 	.dsw1(sw[0]), .dsw2(sw[1]), .joys(joys_to_core), .joys2(joys2_to_core),
@@ -246,27 +263,109 @@ docastle_core core
 	.main_wait_debug(), .psg_ready_debug(), .renderer_busy_debug(),
 	.renderer_overrun_debug(), .game_id_debug(game_id_wire),
 	.profile_debug(), .profile_valid_debug(), .adpcm_busy_debug(),
-	.adpcm_nibble_debug(), .adpcm_strobe_debug()
+	.adpcm_nibble_debug(), .adpcm_strobe_debug(),
+	.watchdog_reset_debug(), .sprite_copy_debug(), .cf_write_debug(),
+	.crtc_cursor_debug(), .cf_irq_debug(), .cf_overrun_debug(),
+	.cf_reg2_debug(), .cf_addr_debug(), .cf_data_debug(),
+	.crtc_write_debug(), .crtc_reg_debug(), .crtc_data_debug()
 );
 assign AUDIO_L = core_audio;
 assign AUDIO_R = core_audio;
 
 wire orientation = status[2];
 wire [1:0] ar = status[24:23];
-assign VIDEO_ARX = (ar == 0) ? (orientation ? 13'd4 : 13'd3)
+wire [12:0] aspect_arx = (ar == 0) ? (orientation ? 13'd4 : 13'd3)
 	: ({11'd0,ar} - 13'd1);
-assign VIDEO_ARY = (ar == 0) ? (orientation ? 13'd3 : 13'd4) : 13'd0;
+wire [12:0] aspect_ary = (ar == 0) ? (orientation ? 13'd3 : 13'd4) : 13'd0;
 wire no_rotate = orientation | direct_video;
 wire rotate_ccw = ~status[1];
 wire flip = 1'b0;
+
+// CRT Adjust (rmonic79/MiSTer-CRT-Adjust). The native raster is 312x264 with
+// an asymmetric 240-pixel active window, so the upstream SYNCSHIFT mode is the
+// appropriate horizontal-position implementation. The read period is measured
+// in quarter master-clock cycles: 49.152 MHz / 4.9152 MHz = 10 clocks = 40
+// quarters at the neutral setting.
+wire crt_on = status[101];
+wire signed [4:0] crt_hsize = $signed(status[100:96]);
+wire [6:0] crt_hpos_raw = status[85:79];
+wire signed [8:0] crt_hpos = (crt_hpos_raw <= 7'd48)
+	? $signed({2'b00,crt_hpos_raw})
+	: (crt_hpos_raw <= 7'd96)
+		? ($signed({2'b00,crt_hpos_raw}) - 9'sd97) : 9'sd0;
+wire signed [5:0] crt_vshift = $signed(status[78:74]);
+
+wire crt_hs_ref;
+reg crt_hs_ref_d;
+always @(posedge clk_sys) crt_hs_ref_d <= crt_hs_ref;
+wire crt_hs_ref_rise = crt_hs_ref & ~crt_hs_ref_d;
+
+wire signed [8:0] crt_period_calc = 9'sd40 + crt_hsize;
+wire [7:0] crt_rd_period = crt_period_calc[7:0];
+reg [7:0] crt_rd_acc;
+wire [8:0] crt_rd_sum = {1'b0,crt_rd_acc} + 9'd4;
+wire crt_rd_tick = crt_rd_sum >= {1'b0,crt_rd_period};
+always @(posedge clk_sys) begin
+	if (!crt_on || crt_hs_ref_rise) crt_rd_acc <= 8'd0;
+	else if (crt_rd_tick) crt_rd_acc <= crt_rd_sum - {1'b0,crt_rd_period};
+	else crt_rd_acc <= crt_rd_sum[7:0];
+end
+
+wire [7:0] crt_r, crt_g, crt_b;
+wire crt_hs, crt_vs, crt_hblank, crt_vblank;
+crt_adjust #(
+	.VTOTAL(264),
+	.HTOTAL(312),
+	.HPOS_MODE(`HPOS_SYNCSHIFT)
+) crt_adjust
+(
+	.clk(clk_sys), .pxl_cen(ce_pix), .pxl2_cen(crt_rd_tick),
+	.active(crt_on), .hsize(crt_hsize), .hoffset(crt_hpos),
+	.voffset(crt_vshift),
+	.r_in(rgb_out[23:16]), .g_in(rgb_out[15:8]), .b_in(rgb_out[7:0]),
+	.hs_in(hs), .vs_in(vs), .hb_in(hblank | vblank), .vb_in(vblank),
+	.r_out(crt_r), .g_out(crt_g), .b_out(crt_b),
+	.hs_out(crt_hs), .vs_out(crt_vs),
+	.hb_out(crt_hblank), .vb_out(crt_vblank),
+	.hs_ref_out(crt_hs_ref)
+);
+
+wire video_ce = crt_on ? crt_rd_tick : ce_pix;
+wire [23:0] video_rgb = crt_on ? {crt_r,crt_g,crt_b} : rgb_out;
+wire video_hblank = crt_on ? crt_hblank : hblank;
+wire video_vblank = crt_on ? crt_vblank : vblank;
+wire video_hs = crt_on ? crt_hs : hs;
+wire video_vs = crt_on ? crt_vs : vs;
+
 screen_rotate screen_rotate (.*);
 
+wire video_de;
 arcade_video #(240,24) arcade_video
 (
 	.*,
-	.clk_video(clk_sys), .ce_pix(ce_pix), .RGB_in(rgb_out),
-	.HBlank(hblank), .VBlank(vblank), .HSync(hs), .VSync(vs), .fx(status[5:3])
+	.clk_video(clk_sys), .ce_pix(video_ce), .RGB_in(video_rgb),
+	.HBlank(video_hblank), .VBlank(video_vblank),
+	.HSync(video_hs), .VSync(video_vs), .VGA_DE(video_de), .fx(status[5:3])
 );
+
+// MiSTer's standard integer-scaling engine. Mode 4 chooses the closest
+// aspect-correct H+V integer multiple; Normal preserves the core aspect ratio.
+wire integer_scaling = status[27] & ~direct_video;
+wire integer_de;
+wire [12:0] integer_arx, integer_ary;
+video_freak video_freak
+(
+	.CLK_VIDEO(CLK_VIDEO), .CE_PIXEL(CE_PIXEL), .VGA_VS(VGA_VS),
+	.HDMI_WIDTH(HDMI_WIDTH), .HDMI_HEIGHT(HDMI_HEIGHT),
+	.VGA_DE(integer_de), .VIDEO_ARX(integer_arx), .VIDEO_ARY(integer_ary),
+	.VGA_DE_IN(video_de), .ARX(aspect_arx[11:0]), .ARY(aspect_ary[11:0]),
+	.CROP_SIZE(12'd0), .CROP_OFF(5'd0),
+	.SCALE(integer_scaling ? 3'd4 : 3'd0)
+);
+
+assign VGA_DE = integer_scaling ? integer_de : video_de;
+assign VIDEO_ARX = integer_scaling ? integer_arx : aspect_arx;
+assign VIDEO_ARY = integer_scaling ? integer_ary : aspect_ary;
 
 wire _unused = &{1'b0,CLK_AUDIO,HDMI_WIDTH,HDMI_HEIGHT,SD_MISO,SD_CD,
 	DDRAM_BUSY,DDRAM_DOUT,DDRAM_DOUT_READY,UART_CTS,UART_RXD,UART_DSR,USER_IN,OSD_STATUS,
