@@ -124,21 +124,22 @@ function Get-SetMetadata([string]$SetName) {
 }
 
 function Get-ControlMetadata([string]$SetName) {
-	# Keep all twelve names aligned with the shared core's fixed joystick bit ABI.
-	# A dash hides an input in MiSTer's mapper without shifting any later bits,
-	# so existing per-game mappings remain compatible when an unused input is hidden.
-	$systemControls = "Start 1P,Start 2P,Coin,Service Mode,Pause"
+	# Keep all thirteen names aligned with the shared core's fixed joystick bit ABI.
+	# A dash hides an input in MiSTer's mapper without shifting later bit positions.
+	$systemControls = "Start 1P,Start 2P,Coin 1,Coin 2,Service Mode,Pause"
+	$standardDefaults = "A,-,Start,Select,R,L,X,Y,-,-,-,-,-"
+	$soccerDefaults = "A,B,Start,Select,R,L,X,Y,-,-,-,-,-"
 	$unusedRightStick = "-,-,-,-"
 	switch ($SetName) {
-		"docastle" { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"douni"    { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"dorunrun" { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"spiero"   { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"dowild"   { return @{ names="Speed,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"jjack"    { return @{ names="Action,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"kickridr" { return @{ names="Accelerate,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count=1 } }
-		"idsoccer" { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults="A,B,Start,Select,R,L,X"; count=2 } }
-		"asoccer"  { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults="A,B,Start,Select,R,L,X"; count=2 } }
+		"docastle" { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"douni"    { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"dorunrun" { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"spiero"   { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"dowild"   { return @{ names="Speed,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"jjack"    { return @{ names="Action,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"kickridr" { return @{ names="Accelerate,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count=1 } }
+		"idsoccer" { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults=$soccerDefaults; count=2 } }
+		"asoccer"  { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults=$soccerDefaults; count=2 } }
 	}
 	throw "No control definition for $SetName"
 }
@@ -159,8 +160,8 @@ foreach ($game in $definition.sets) {
 	$isSoccer = $game.profile -eq "soccer"
 	$controls = Get-ControlMetadata $game.set
 	$buttonNames = $controls.names
-	if (@($buttonNames -split ',').Count -ne 12) {
-		throw "$($game.set) must define exactly 12 fixed-ABI control names"
+	if (@($buttonNames -split ',').Count -ne 13) {
+		throw "$($game.set) must define exactly 13 fixed-ABI control names"
 	}
 
 	$builder = [Text.StringBuilder]::new()
@@ -193,7 +194,7 @@ foreach ($game in $definition.sets) {
 	}
 	[void]$builder.AppendLine("	</switches>")
 	[void]$builder.AppendLine()
-	[void]$builder.AppendLine(('	<rom index="0" zip="{0}" md5="{1}">' -f $game.zip,$md5))
+	[void]$builder.AppendLine(('	<rom index="0" zip="{0}" md5="{1}" type="merged|nonmerged|split">' -f $game.zip,$md5))
 
 	$cursor = 0
 	foreach ($part in ($game.parts | Sort-Object streamOffset)) {

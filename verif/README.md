@@ -49,13 +49,28 @@ checks the game/profile ID, 46,080 visible pixels per frame, all three CPU
 buses, main WAIT duration, renderer deadline, nonblack video, and ADPCM event
 count. It never enables tracing by default.
 
+## Live RTL-vs-MAME lockstep
+
+Build and launch the native SDL RTL window beside a native MAME reference
+window. Both publish raw 240x192 frames, wait at an atomic frame barrier, and
+the coordinator writes per-frame mismatch metrics and PPM diffs:
+
+    powershell -ExecutionPolicy Bypass -File verif/run_lockstep.ps1 \
+      -Game docastle -GameId 0 -Frames 120
+
+Use `-Detached` to leave both windows running after the launcher returns. The
+MAME participant uses `screen:pixels()` and the RTL participant uses the exact
+819/8192 simulation raster. A zero mismatch means the captured native RGB
+buffers are identical; startup skew or a real rendering difference remains in
+`comparison.json` and `diff/` rather than being hidden by a screenshot.
+
 The hardware-fidelity switches map directly to the OSD options:
 
     -Pcb             # third-CPU copy, CF doorway and watchdog
     -PcbAudio        # 48 kHz PCB output-stage approximation
     -PcbFramebuffer  # experimental double-buffered CF field renderer
     -CursorIrq       # experimental CRTC CURSOR interrupt source
-    -TimingCheck     # exact rational frame cadence and watchdog assertions
+    -TimingCheck     # exact fixed video cadence and watchdog assertions
     -EventLog        # bounded CSV event log
 
 For the long Do! Run Run cadence/event check, use:

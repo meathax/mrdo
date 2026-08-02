@@ -14,6 +14,9 @@ module docastle_cf37201
 	input frame_parity, input irq_ack,
 	output reg irq_req,
 	output [7:0] dram_addr,
+	output [15:0] dram_address,
+	output dram_strobe, output dram_column,
+	output [7:0] dram_y, output [7:0] dram_x,
 	output [4:0] palette,
 	output flip_x, output flip_y, output plus_one, output serial_invert,
 	output busy, output reg overrun, output [7:0] reg2_debug
@@ -39,6 +42,13 @@ assign flip_y = flip_y_latch;
 // FYYYYYYY is emitted on one phase and V0XXXXXXX on the other.
 assign dram_addr = h0_phase[1]
 	? {frame_parity,y_count[7:1]} : {y_count[0],x_count};
+// The chip presents F+Y and Y0+X on alternating phases. Keep the assembled
+// byte address available to the external DRAM model as well.
+assign dram_address = {frame_parity,y_count,x_count};
+assign dram_y = y_count;
+assign dram_x = {x_count,1'b0};
+assign dram_column = h0_phase[1];
+assign dram_strobe = ce_mclk && blit_busy && (h0_phase == 2'b11);
 assign plus_one = reg1b[0] & blit_busy & h0_phase[1];
 assign serial_invert = reg1b[0] ^ reg2[6];
 

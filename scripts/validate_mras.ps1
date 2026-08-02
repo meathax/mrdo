@@ -9,18 +9,20 @@ $definition = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $seenIds = @{}
 
 function Get-ExpectedControls([string]$SetName) {
-	$systemControls = "Start 1P,Start 2P,Coin,Service Mode,Pause"
+	$systemControls = "Start 1P,Start 2P,Coin 1,Coin 2,Service Mode,Pause"
+	$standardDefaults = "A,-,Start,Select,R,L,X,Y,-,-,-,-,-"
+	$soccerDefaults = "A,B,Start,Select,R,L,X,Y,-,-,-,-,-"
 	$unusedRightStick = "-,-,-,-"
 	switch ($SetName) {
-		"docastle" { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"douni"    { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"dorunrun" { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"spiero"   { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"dowild"   { return @{ names="Speed,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"jjack"    { return @{ names="Action,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"kickridr" { return @{ names="Accelerate,-,$systemControls,$unusedRightStick,Service Credit"; defaults="A,Start,Select,R,L,X"; count="1" } }
-		"idsoccer" { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults="A,B,Start,Select,R,L,X"; count="2" } }
-		"asoccer"  { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults="A,B,Start,Select,R,L,X"; count="2" } }
+		"docastle" { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"douni"    { return @{ names="Hammer,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"dorunrun" { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"spiero"   { return @{ names="Throw,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"dowild"   { return @{ names="Speed,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"jjack"    { return @{ names="Action,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"kickridr" { return @{ names="Accelerate,-,$systemControls,$unusedRightStick,Service Credit"; defaults=$standardDefaults; count="1" } }
+		"idsoccer" { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults=$soccerDefaults; count="2" } }
+		"asoccer"  { return @{ names="Kick,Change Player,$systemControls,Right Stick Left,Right Stick Right,Right Stick Up,Right Stick Down,Service Credit"; defaults=$soccerDefaults; count="2" } }
 	}
 	throw "No expected control definition for $SetName"
 }
@@ -60,11 +62,11 @@ foreach ($game in $definition.sets) {
 		throw "$fileName default controls '$($root.buttons.default)' should be '$($controls.defaults)'"
 	}
 	$controlFields = @(([string]$root.buttons.names) -split ',')
-	if ($controlFields.Count -ne 12) {
-		throw "$fileName has $($controlFields.Count) control fields instead of the fixed ABI's 12"
+	if ($controlFields.Count -ne 13) {
+		throw "$fileName has $($controlFields.Count) control fields instead of the fixed ABI's 13"
 	}
 	$isSoccer = $game.profile -eq "soccer"
-	$rightStickFields = $controlFields[7..10]
+	$rightStickFields = $controlFields[8..11]
 	if ($isSoccer -and ($rightStickFields -contains "-")) {
 		throw "$fileName must expose all four right-stick directions"
 	}
@@ -79,6 +81,9 @@ foreach ($game in $definition.sets) {
 	}
 	if ($rom0[0].zip -ne $game.zip) {
 		throw "$fileName points to '$($rom0[0].zip)' instead of $($game.zip)"
+	}
+	if ($rom0[0].type -ne "merged|nonmerged|split") {
+		throw "$fileName ROM type '$($rom0[0].type)' must support merged, nonmerged, and split sets"
 	}
 
 	$expectedId = "{0:X2}" -f [int]$game.id

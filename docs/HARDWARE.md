@@ -21,8 +21,11 @@
 - Result: 240 x 192 at about 59.659 Hz, rotated CCW in the cabinet.
 
 The MiSTer PLL generates 49.152 MHz for the raster domain and 24.576 MHz for
-audio. `/10` gives 4.9152 MHz, a 0.0244% pixel-clock delta; a rational 125/1536
-clock enable gives exactly 4.000 MHz for the CPUs and PSGs.
+audio. The production default uses the exact 819/8192 fractional enable
+(4.914 MHz, 59.6590909 Hz average), matching the PCB refresh. Turning the
+OSD's `PCB-rate raster` option Off selects the legacy fixed `/10` enable at
+4.9152 MHz for compatibility with the earlier low-jitter profile. A rational
+125/1536 clock enable gives exactly 4.000 MHz for the CPUs and PSGs.
 
 ## CPU maps
 
@@ -43,9 +46,13 @@ third Z80 and re-armed while enabled. Only real bus writes feed this path.
 The synchronous CF37201 model follows the available TAL004 decap reproduction:
 three decoded registers (A3 is not decoded), register-1 staging, X/Y counters,
 palette/flip latches, the exact two-phase DRAM address mux, serial inversion,
-field parity, and the measured 126-MCLK `/PL` cycle. Normal PCB support retains
-the visually proven sprite renderer; the optional full 64K two-field renderer
-is deliberately experimental because it still misses part of the title logo.
+field parity, and the measured 126-MCLK `/PL` cycle. The PCB framebuffer
+backend now carries the assembled `F+Y+X` DRAM byte address, field select, byte
+phase, palette, flip and serial-polarity signals into the two alternating
+field memories. The descriptor renderer remains the source-stream model until
+a board capture proves the remaining CF data-source handshake, so it is
+selectable for verification rather than silently replacing the validated
+direct renderer.
 
 The HD6845 model has writable R0-R15 timing, start address, memory/raster
 address generation, sync widths, display skew, cursor shape, and cursor blink.
@@ -72,5 +79,6 @@ red/green `0x23,0x4b,0x91`; blue `0x52,0xad`.
   all-zero CRTC programming burst; VSYNC is the validated release behavior.
 - The `dorunrun2` 12-round sequence, pending the clone ROM archive and PCB.
 - Board-level analogue audio filtering and amplifier response.
-- Pixel-clock correction from 4.9152 MHz to the nominal 4.914 MHz if a
-  dedicated fractional PLL profile proves worthwhile on hardware.
+- Compare the default PCB-rate raster against a real board for phase and
+  analogue sync behaviour; the fixed `/10` profile remains available as a
+  compatibility fallback if a particular display requires it.

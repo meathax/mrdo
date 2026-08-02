@@ -31,6 +31,17 @@ module docastle_video
 	input   [8:0] pcb_sprite_addr,
 	input   [7:0] pcb_sprite_din,
 	input         pcb_sprite_we,
+	// Pin-level CF37201 external-DRAM interface kept in the PCB write path.
+	input  [15:0] cf_dram_address,
+	input         cf_dram_strobe,
+	input         cf_dram_column,
+	input   [7:0] cf_dram_y,
+	input   [7:0] cf_dram_x,
+	input   [4:0] cf_palette,
+	input         cf_flip_x,
+	input         cf_flip_y,
+	input         cf_plus_one,
+	input         cf_serial_invert,
 
 	output [13:0] char_addr,
 	input   [7:0] char_q,
@@ -221,6 +232,10 @@ docastle_pcb_sprite pcb_sprite
 	.h_count(h_count), .v_count(v_count), .vblank(vblank),
 	.flipscreen(flipscreen), .soccer_sprites(soccer_sprites),
 	.cpu_addr(pcb_sprite_addr), .cpu_data(pcb_sprite_din), .cpu_we(pcb_sprite_we),
+	.cf_dram_address(cf_dram_address), .cf_dram_strobe(cf_dram_strobe),
+	.cf_dram_column(cf_dram_column), .cf_dram_y(cf_dram_y), .cf_dram_x(cf_dram_x),
+	.cf_palette(cf_palette), .cf_flip_x(cf_flip_x), .cf_flip_y(cf_flip_y),
+	.cf_plus_one(cf_plus_one), .cf_serial_invert(cf_serial_invert),
 	.gfx_addr(pcb_gfx_addr), .gfx_q(sprite_gfx_q), .pixel(pcb_sprite_pixel),
 	.busy(pcb_busy), .overrun(pcb_overrun), .frame_ready(pcb_frame_ready)
 );

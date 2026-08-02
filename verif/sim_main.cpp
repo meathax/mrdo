@@ -12,6 +12,10 @@
 
 static vluint64_t sim_time = 0;
 
+// Keep native MinGW builds compatible with the Verilator runtime and make
+// the harness usable with either --no-timing or a diagnostic timing build.
+double sc_time_stamp() { return static_cast<double>(sim_time); }
+
 static void tick(Vdocastle_core& top) {
     top.clk = 0;
     top.eval();
@@ -77,7 +81,7 @@ int main(int argc, char** argv) {
             << "usage: Vdocastle_core <combined.rom> <game_id> <frames> <frame.ppm>"
             << " [play] [audio.wav] [title.ppm] [attract.ppm]"
             << " [--pcb] [--pcb-audio] [--pcb-framebuffer]"
-            << " [--cursor-irq] [--timing-check] [--events=path.csv]\n";
+            << " [--cursor-irq] [--exact-pixel] [--timing-check] [--events=path.csv]\n";
         return 2;
     }
 
@@ -98,6 +102,7 @@ int main(int argc, char** argv) {
     bool pcb_audio = false;
     bool pcb_framebuffer = false;
     bool cursor_irq = false;
+    bool exact_pixel = false;
     bool timing_check = false;
     std::string event_path;
     for (int i = 5; i < argc; ++i) {
@@ -106,6 +111,7 @@ int main(int argc, char** argv) {
         else if (arg == "--pcb-audio") pcb_audio = true;
         else if (arg == "--pcb-framebuffer") pcb_framebuffer = true;
         else if (arg == "--cursor-irq") cursor_irq = true;
+        else if (arg == "--exact-pixel") exact_pixel = true;
         else if (arg == "--timing-check") timing_check = true;
         else if (arg.rfind("--events=", 0) == 0) event_path = arg.substr(9);
     }
@@ -128,6 +134,7 @@ int main(int argc, char** argv) {
     top.pcb_audio_filter = pcb_audio;
     top.pcb_framebuffer = pcb_framebuffer;
     top.pcb_cursor_irq = cursor_irq;
+    top.exact_pixel_clock = exact_pixel;
     top.ioctl_download = 0;
     top.ioctl_wr = 0;
     top.ioctl_index = 0;
@@ -331,9 +338,16 @@ int main(int argc, char** argv) {
         std::cerr << "main/sub handshake held WAIT for " << longest_wait << " master clocks\n";
         return 1;
     }
-    if (timing_check && frames > 2 &&
-        (shortest_frame < 823879ULL || longest_frame > 823882ULL)) {
-        std::cerr << "frame cadence outside rational-clock bounds: "
+    constexpr uint64_t expected_fixed_frame_cycles = 312ULL * 264ULL * 10ULL;
+    constexpr uint64_t expected_exact_short = 823881ULL;
+    constexpr uint64_t expected_exact_long = 823882ULL;
+    const uint64_t expected_short = exact_pixel ? expected_exact_short : expected_fixed_frame_cycles;
+    const uint64_t expected_long = exact_pixel ? expected_exact_long : expected_fixed_frame_cycles;
+    const bool cadence_ok = exact_pixel
+        ? (shortest_frame >= expected_exact_short && longest_frame <= expected_exact_long)
+        : (shortest_frame == expected_short && longest_frame == expected_long);
+    if (timing_check && frames > 2 && !cadence_ok) {
+        std::cerr << "frame cadence outside selected raster-clock bounds: "
                   << shortest_frame << ".." << longest_frame << " master clocks\n";
         return 1;
     }

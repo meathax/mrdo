@@ -10,6 +10,9 @@ module docastle_core
 	input         pcb_audio_filter,
 	input         pcb_framebuffer,
 	input         pcb_cursor_irq,
+	// Simulation/verification hook. Hardware keeps the measured /10 raster
+	// divider; the live RTL-vs-MAME harness selects the exact crystal ratio.
+	input         exact_pixel_clock,
 
 	input         ioctl_download,
 	input         ioctl_wr,
@@ -112,13 +115,17 @@ assign game_id_debug = game_id;
 assign profile_debug = profile;
 assign profile_valid_debug = profile_valid & game_id_loaded;
 
-// The inherited PLL provides 49.152 MHz. Rational enables reproduce both
-// independent PCB clocks exactly on average:
-//   pixel: 49.152 MHz * 819 / 8192 = 4.914 MHz
-//   CPU/PSG: 49.152 MHz * 125 / 1536 = 4.000 MHz
+// The inherited PLL provides 49.152 MHz. Keep the video enable on a fixed
+// cadence: a fractional pixel accumulator has the right average frequency
+// but produces 10/11-clock line-length modulation that is visible as shimmer
+// on an analog CRT. /10 is 4.9152 MHz, only 0.0244% above the nominal 4.914
+// MHz raster clock, and gives HSYNC a deterministic edge-to-edge period.
+// CPU/PSG timing remains rational because those devices are not the analog
+// sync source.
+reg [3:0] pix_div;
 reg [12:0] pix_phase;
 reg ce_pix_r;
-reg [12:0] mclk_phase;
+reg [11:0] mclk_phase;
 reg ce_mclk;
 reg [10:0] cpu_phase;
 reg ce_cpu;
@@ -126,6 +133,7 @@ assign ce_pix = ce_pix_r;
 
 always @(posedge clk) begin
 	if (machine_reset) begin
+		pix_div <= 0;
 		pix_phase <= 0;
 		ce_pix_r <= 0;
 		mclk_phase <= 0;
@@ -134,18 +142,25 @@ always @(posedge clk) begin
 		ce_cpu <= 0;
 	end else begin
 		ce_pix_r <= 0;
-		if (pix_phase >= 13'd7373) begin
-			pix_phase <= pix_phase - 13'd7373;
+		if (exact_pixel_clock) begin
+			// 4.914 MHz / 49.152 MHz = 819/8192. The resulting 10/11
+			// master-clock cadence is selected only by simulation.
+			if (pix_phase >= 13'd7373) begin
+				pix_phase <= pix_phase - 13'd7373;
+				ce_pix_r <= 1;
+			end else pix_phase <= pix_phase + 13'd819;
+		end else if (pix_div == 4'd9) begin
+			pix_div <= 0;
 			ce_pix_r <= 1;
-		end else pix_phase <= pix_phase + 13'd819;
+		end else pix_div <= pix_div + 1'd1;
 
 		// CF37201 and its external /PL counter use the 9.828 MHz MCLK,
-		// exactly twice the pixel rate and phase-accumulated from the PLL.
+		// exactly twice the pixel rate.  9.828/49.152 = 819/4096.
 		ce_mclk <= 0;
-		if (mclk_phase >= 13'd6554) begin
-			mclk_phase <= mclk_phase - 13'd6554;
+		if (mclk_phase >= 12'd3277) begin
+			mclk_phase <= mclk_phase - 12'd3277;
 			ce_mclk <= 1;
-		end else mclk_phase <= mclk_phase + 13'd1638;
+		end else mclk_phase <= mclk_phase + 12'd819;
 
 		ce_cpu <= 0;
 		if (cpu_phase >= 11'd1411) begin
@@ -222,6 +237,9 @@ wire [10:0] cf_addr;
 wire [7:0] cf_data;
 wire cf_we, cf_irq_req, cf_irq_ack;
 wire [7:0] cf_dram_addr;
+wire [15:0] cf_dram_address;
+wire cf_dram_strobe, cf_dram_column;
+wire [7:0] cf_dram_y, cf_dram_x;
 wire [4:0] cf_palette;
 wire cf_flip_x, cf_flip_y, cf_plus_one, cf_serial_invert;
 wire cf_busy, cf_overrun;
@@ -300,7 +318,9 @@ docastle_cf37201 cf37201
 	.clk(clk), .reset(machine_reset), .ce_mclk(ce_mclk), .bus_we(cf_we),
 	.bus_addr(cf_addr[1:0]), .bus_data(cf_data),
 	.frame_parity(v_count_debug_wire[0]), .irq_ack(cf_irq_ack),
-	.irq_req(cf_irq_req), .dram_addr(cf_dram_addr), .palette(cf_palette),
+	.irq_req(cf_irq_req), .dram_addr(cf_dram_addr), .dram_address(cf_dram_address),
+	.dram_strobe(cf_dram_strobe), .dram_column(cf_dram_column),
+	.dram_y(cf_dram_y), .dram_x(cf_dram_x), .palette(cf_palette),
 	.flip_x(cf_flip_x), .flip_y(cf_flip_y), .plus_one(cf_plus_one),
 	.serial_invert(cf_serial_invert), .busy(cf_busy), .overrun(cf_overrun),
 	.reg2_debug(cf_reg2_debug)
@@ -318,6 +338,10 @@ docastle_video video
 	// C000-C1FF is the physical 512-byte sprite doorway.  C432 is the
 	// protection/CF control latch and must never corrupt sprite RAM.
 	.pcb_sprite_we(cf_we && (cf_addr < 11'h200)),
+	.cf_dram_address(cf_dram_address), .cf_dram_strobe(cf_dram_strobe),
+	.cf_dram_column(cf_dram_column), .cf_dram_y(cf_dram_y), .cf_dram_x(cf_dram_x),
+	.cf_palette(cf_palette), .cf_flip_x(cf_flip_x), .cf_flip_y(cf_flip_y),
+	.cf_plus_one(cf_plus_one), .cf_serial_invert(cf_serial_invert),
 	.char_addr(char_addr), .char_q(char_q),
 	.sprite_gfx_addr(sprite_gfx_addr), .sprite_gfx_q(sprite_gfx_q),
 	.prom_addr(prom_addr), .prom_q(prom_q),

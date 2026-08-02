@@ -12,6 +12,10 @@ module docastle_pcb_sprite
 	input [8:0] h_count, input [8:0] v_count, input vblank,
 	input flipscreen, input soccer_sprites,
 	input [8:0] cpu_addr, input [7:0] cpu_data, input cpu_we,
+	input [15:0] cf_dram_address, input cf_dram_strobe, input cf_dram_column,
+	input [7:0] cf_dram_y, input [7:0] cf_dram_x,
+	input [4:0] cf_palette, input cf_flip_x, input cf_flip_y,
+	input cf_plus_one, input cf_serial_invert,
 	output reg [16:0] gfx_addr, input [7:0] gfx_q,
 	output [9:0] pixel,
 	output busy, output reg overrun, output reg frame_ready
@@ -41,18 +45,32 @@ wire [8:0] build_q = display_bank ? field0_q : field1_q;
 reg fb_we;
 reg [15:0] fb_addr;
 reg [8:0] fb_data;
+reg fb_field;
+// A CF byte is a two-pixel external-DRAM location.  The renderer normally
+// writes the descriptor-derived address, but a live CF transaction takes the
+// TAL004's assembled address and field select all the way to the field RAM.
+wire cf_bus_write = cf_dram_strobe && cf_dram_column;
+wire [15:0] cf_pixel_addr = {cf_dram_y,cf_dram_x};
+wire [15:0] cf_pixel_addr_plus = cf_pixel_addr + (cf_plus_one ? 16'd1 : 16'd0);
+wire [15:0] write_addr0 = cf_bus_write ? cf_pixel_addr : p0_addr;
+wire [15:0] write_addr1 = cf_bus_write ? cf_pixel_addr_plus : p1_addr;
+wire write_field = cf_bus_write ? cf_dram_address[15] : fb_field;
+wire [3:0] write_pen0 = cf_bus_write && cf_serial_invert ? ~pen0 : pen0;
+wire [3:0] write_pen1 = cf_bus_write && cf_serial_invert ? ~pen1 : pen1;
+wire [8:0] write_word0 = {1'b1,cf_bus_write ? cf_palette : active_color,write_pen0[2:0]};
+wire [8:0] write_word1 = {1'b1,cf_bus_write ? cf_palette : active_color,write_pen1[2:0]};
 wire [15:0] field0_rd_addr = display_bank ? build_addr : display_addr;
 wire [15:0] field1_rd_addr = display_bank ? display_addr : build_addr;
 
 docastle_field_ram field0
 (
 	.clk(clk), .rd_addr(field0_rd_addr), .rd_data(field0_q),
-	.wr_addr(fb_addr), .wr_data(fb_data), .wr_en(fb_we && display_bank)
+	.wr_addr(fb_addr), .wr_data(fb_data), .wr_en(fb_we && !fb_field)
 );
 docastle_field_ram field1
 (
 	.clk(clk), .rd_addr(field1_rd_addr), .rd_data(field1_q),
-	.wr_addr(fb_addr), .wr_data(fb_data), .wr_en(fb_we && !display_bank)
+	.wr_addr(fb_addr), .wr_data(fb_data), .wr_en(fb_we && fb_field)
 );
 
 always @(posedge clk) begin
@@ -98,11 +116,13 @@ wire signed [9:0] entry_sy = flipscreen
 	? (10'sd240 - $signed({2'b00,entry[7:0]}))
 	: $signed({2'b00,entry[7:0]});
 
-wire [3:0] source_row = active_flipy ? (4'd15-row_index) : row_index;
+wire render_flipy = cf_bus_write ? cf_flip_y : active_flipy;
+wire render_flipx = cf_bus_write ? cf_flip_x : active_flipx;
+wire [3:0] source_row = render_flipy ? (4'd15-row_index) : row_index;
 wire [3:0] source_x0 = {byte_index,1'b0};
 wire [3:0] source_x1 = {byte_index,1'b0} + 1'd1;
-wire [3:0] local_x0 = active_flipx ? (4'd15-source_x0) : source_x0;
-wire [3:0] local_x1 = active_flipx ? (4'd15-source_x1) : source_x1;
+wire [3:0] local_x0 = render_flipx ? (4'd15-source_x0) : source_x0;
+wire [3:0] local_x1 = render_flipx ? (4'd15-source_x1) : source_x1;
 wire signed [10:0] dst_x0 = $signed({active_sx[9],active_sx}) + $signed({7'b0,local_x0});
 wire signed [10:0] dst_x1 = $signed({active_sx[9],active_sx}) + $signed({7'b0,local_x1});
 wire signed [10:0] dst_y = $signed({active_sy[9],active_sy}) + $signed({7'b0,row_index});
@@ -146,7 +166,7 @@ always @(posedge clk) begin
 		state <= ST_IDLE; display_bank <= 0; display_valid <= 0;
 		frame_ready <= 0; overrun <= 0; prev_vblank <= 0;
 		clear_addr <= 0; scan_index <= 0; row_index <= 0; byte_index <= 0;
-		gfx_addr <= 0; build_addr <= 0; fb_addr <= 0; fb_data <= 0;
+		gfx_addr <= 0; build_addr <= 0; fb_addr <= 0; fb_data <= 0; fb_field <= 0;
 	end else begin
 		if (ce_pix && h_count == 0 && v_count == 0) begin
 			if (frame_ready) begin
@@ -166,6 +186,7 @@ always @(posedge clk) begin
 			ST_IDLE: ;
 			ST_CLEAR: begin
 				fb_we <= 1; fb_addr <= clear_addr; fb_data <= 0;
+				fb_field <= ~display_bank;
 				if (clear_addr == 16'hffff) begin
 					scan_index <= 7'd127; row_index <= 0; byte_index <= 0;
 					state <= ST_SCAN;
@@ -193,7 +214,8 @@ always @(posedge clk) begin
 			ST_P0WAIT: state <= ST_P0USE;
 			ST_P0USE: begin
 				if (!build_q[8]) begin
-					fb_we <= 1; fb_addr <= p0_addr; fb_data <= word0;
+					fb_we <= 1; fb_addr <= write_addr0; fb_data <= write_word0;
+					fb_field <= cf_bus_write ? cf_dram_address[15] : ~display_bank;
 				end
 				state <= ST_P1REQ;
 			end
@@ -205,7 +227,8 @@ always @(posedge clk) begin
 			ST_P1WAIT: state <= ST_P1USE;
 			ST_P1USE: begin
 				if (!build_q[8]) begin
-					fb_we <= 1; fb_addr <= p1_addr; fb_data <= word1;
+					fb_we <= 1; fb_addr <= write_addr1; fb_data <= write_word1;
+					fb_field <= cf_bus_write ? cf_dram_address[15] : ~display_bank;
 				end
 				advance_pair();
 			end

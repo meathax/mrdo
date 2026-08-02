@@ -148,12 +148,12 @@ The shared timing target is:
 - Visible raster: X 8–247 and Y 0–191, giving 240 × 192.
 - Nominal refresh: 59.6590909 Hz.
 
-The current rational enables from 49.152 MHz are suitable in average frequency:
-
-- Pixel enable: 49.152 MHz × 819 / 8192 = 4.914 MHz.
-- CPU enable: 49.152 MHz × 125 / 1536 = 4.000 MHz.
-
-They must be validated for phase, pulse width, and consumer assumptions rather than replaced casually.
+The production video path defaults to the exact 819/8192 pixel enable, yielding
+823,881/823,882 master clocks per 312x264 frame and the nominal 59.6590909 Hz
+average. The OSD `PCB-rate raster` switch and visual lockstep harness use this
+PCB-rate profile. Turning the switch Off retains the earlier fixed `/10`
+enable at 4.9152 MHz as a compatibility fallback. CPU/PSG timing remains
+rational at 49.152 MHz × 125 / 1536 = 4.000 MHz.
 
 MAME drives main IRQ and sprite NMI from VSYNC. Schematics indicate that one or both may be driven by the CRTC cursor output. The initial compatibility target is current MAME behavior; a later controlled cursor-versus-VSYNC comparison must use schematics, real-board evidence, attract timing, and game stability before changing production behavior.
 
@@ -410,6 +410,8 @@ The descriptor is loaded only while the core is held in reset. It is then distri
 ### 6.6 Inputs and MRAs
 
 - Keep inputs active low at the emulated board boundary.
+- Expose separate `Coin 1` and `Coin 2` controls; they map to MAME `SYSTEM[5]`
+  / COIN1 and `SYSTEM[4]` / COIN2 respectively.
 - Implement all MAME DIP switches separately per game; do not use one generic table.
 - Default non-Soccer sets to DSW1 DF / DSW2 FF.
 - Default Soccer sets to DSW1 FF / DSW2 FF.

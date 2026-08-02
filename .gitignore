@@ -5,6 +5,8 @@ simulation/
 obj_dir*/
 verif/out/
 verif/mame/
+verif/lockstep/
+build_tmp/
 references/
 cfg/
 *.rpt

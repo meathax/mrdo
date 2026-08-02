@@ -102,12 +102,9 @@ localparam CONF_STR = {
 	"H0O2,Orientation,Vert,Horz;",
 	"O1,Rotate,CCW,CW;",
 	"H0OMN,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"H0O27,Scaling,Normal,Integer;",
-	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"O[102],PCB support,Off,On;",
-	"O[103],PCB audio stage,Off,On;",
-	"O[104],Experimental CF framebuffer,Off,On;",
-	"O[105],Experimental IRQ,VSYNC,CURSOR;",
+	"O[102],PCB support,On,Off;",
+	"O[103],PCB audio stage,On,Off;",
+	"O[104],PCB-rate raster,On,Off;",
 	"-;",
 	"P2,CRT Adjust;",
 	"P2O[101],Enable,Off,On;",
@@ -122,8 +119,8 @@ localparam CONF_STR = {
 	"P1OQ,Dim video after 10s,On,Off;",
 	"-;",
 	"R0,Reset;",
-	"J1,Button 1,Button 2,Start 1P,Start 2P,Coin,Service Mode,Pause,Right Left,Right Right,Right Up,Right Down,Service Credit;",
-	"jn,A,B,Start,Select,R,L,X;",
+	"J1,Button 1,Button 2,Start 1P,Start 2P,Coin 1,Coin 2,Service Mode,Pause,Right Left,Right Right,Right Up,Right Down,Service Credit;",
+	"jn,A,B,Start,Select,R,L,X,Y;",
 	"V,v",`BUILD_DATE
 };
 
@@ -180,13 +177,16 @@ wire p2_down=joystick_1[2], p2_up=joystick_1[3];
 wire p2_b1=joystick_1[4], p2_b2=joystick_1[5];
 wire start1=joystick_0[6]|joystick_1[6];
 wire start2=joystick_0[7]|joystick_1[7];
-wire coin=joystick_0[8]|joystick_1[8];
-wire service_mode=joystick_0[9]|joystick_1[9];
-wire user_pause=joystick_0[10]|joystick_1[10];
-wire service_credit=joystick_0[15]|joystick_1[15];
+wire coin1=joystick_0[8]|joystick_1[8];
+wire coin2=joystick_0[9]|joystick_1[9];
+wire service_mode=joystick_0[10]|joystick_1[10];
+wire user_pause=joystick_0[11]|joystick_1[11];
+wire service_credit=joystick_0[16]|joystick_1[16];
 wire [7:0] standard_joys = ~{p2_down,p2_left,p2_up,p2_right,p1_down,p1_left,p1_up,p1_right};
 wire [7:0] game_buttons = ~{start2,1'b0,p2_b2,p2_b1,start1,1'b0,p1_b2,p1_b1};
-wire [7:0] game_system = ~{2'b00,coin,1'b0,1'b0,service_credit,service_mode,1'b0};
+// MAME's input table and the PCB expose two active-low coin lines:
+// SYSTEM[5] is COIN1 and SYSTEM[4] is COIN2.
+wire [7:0] game_system = ~{2'b00,coin1,coin2,1'b0,service_credit,service_mode,1'b0};
 
 wire core_reset = RESET | status[0] | hps_buttons[1] | ~pll_locked
 	| (ioctl_download && ((ioctl_index == 16'd0) || (ioctl_index == 16'd1)));
@@ -217,20 +217,19 @@ docastle_analog p2_right_analog
 );
 
 wire [7:0] game_id_wire;
-wire pcb_fidelity = status[102];
-wire pcb_audio_filter = status[103];
-wire pcb_framebuffer = status[104];
-wire pcb_cursor_irq = status[105];
+wire pcb_fidelity = ~status[102];
+wire pcb_audio_filter = ~status[103];
+wire exact_pixel_clock = status[104];
 wire soccer_mode = (game_id_wire == 8'h07) || (game_id_wire == 8'h08);
 wire [7:0] soccer_left_joys = ~{
 	p2_down|p2_la_down,p2_left|p2_la_left,p2_up|p2_la_up,p2_right|p2_la_right,
 	p1_down|p1_la_down,p1_left|p1_la_left,p1_up|p1_la_up,p1_right|p1_la_right
 };
 wire [7:0] soccer_right_joys = ~{
-	joystick_1[14]|p2_ra_down,joystick_1[11]|p2_ra_left,
-	joystick_1[13]|p2_ra_up,joystick_1[12]|p2_ra_right,
-	joystick_0[14]|p1_ra_down,joystick_0[11]|p1_ra_left,
-	joystick_0[13]|p1_ra_up,joystick_0[12]|p1_ra_right
+	joystick_1[15]|p2_ra_down,joystick_1[12]|p2_ra_left,
+	joystick_1[14]|p2_ra_up,joystick_1[13]|p2_ra_right,
+	joystick_0[15]|p1_ra_down,joystick_0[12]|p1_ra_left,
+	joystick_0[14]|p1_ra_up,joystick_0[13]|p1_ra_right
 };
 wire [7:0] joys_to_core = soccer_mode ? soccer_right_joys : standard_joys;
 wire [7:0] joys2_to_core = soccer_mode ? soccer_left_joys : 8'hff;
@@ -252,7 +251,7 @@ docastle_core core
 (
 	.clk(clk_sys), .reset(core_reset), .pause(pause_cpu),
 	.pcb_fidelity(pcb_fidelity), .pcb_audio_filter(pcb_audio_filter),
-	.pcb_framebuffer(pcb_framebuffer), .pcb_cursor_irq(pcb_cursor_irq),
+	.pcb_framebuffer(1'b0), .pcb_cursor_irq(1'b0), .exact_pixel_clock(exact_pixel_clock),
 	.ioctl_download(ioctl_download), .ioctl_wr(ioctl_wr), .ioctl_index(ioctl_index[7:0]),
 	.ioctl_addr(ioctl_addr[24:0]), .ioctl_dout(ioctl_dout),
 	.dsw1(sw[0]), .dsw2(sw[1]), .joys(joys_to_core), .joys2(joys2_to_core),
@@ -345,27 +344,12 @@ arcade_video #(240,24) arcade_video
 	.*,
 	.clk_video(clk_sys), .ce_pix(video_ce), .RGB_in(video_rgb),
 	.HBlank(video_hblank), .VBlank(video_vblank),
-	.HSync(video_hs), .VSync(video_vs), .VGA_DE(video_de), .fx(status[5:3])
+	.HSync(video_hs), .VSync(video_vs), .VGA_DE(video_de), .fx(3'd0)
 );
 
-// MiSTer's standard integer-scaling engine. Mode 4 chooses the closest
-// aspect-correct H+V integer multiple; Normal preserves the core aspect ratio.
-wire integer_scaling = status[27] & ~direct_video;
-wire integer_de;
-wire [12:0] integer_arx, integer_ary;
-video_freak video_freak
-(
-	.CLK_VIDEO(CLK_VIDEO), .CE_PIXEL(CE_PIXEL), .VGA_VS(VGA_VS),
-	.HDMI_WIDTH(HDMI_WIDTH), .HDMI_HEIGHT(HDMI_HEIGHT),
-	.VGA_DE(integer_de), .VIDEO_ARX(integer_arx), .VIDEO_ARY(integer_ary),
-	.VGA_DE_IN(video_de), .ARX(aspect_arx[11:0]), .ARY(aspect_ary[11:0]),
-	.CROP_SIZE(12'd0), .CROP_OFF(5'd0),
-	.SCALE(integer_scaling ? 3'd4 : 3'd0)
-);
-
-assign VGA_DE = integer_scaling ? integer_de : video_de;
-assign VIDEO_ARX = integer_scaling ? integer_arx : aspect_arx;
-assign VIDEO_ARY = integer_scaling ? integer_ary : aspect_ary;
+assign VGA_DE = video_de;
+assign VIDEO_ARX = aspect_arx;
+assign VIDEO_ARY = aspect_ary;
 
 wire _unused = &{1'b0,CLK_AUDIO,HDMI_WIDTH,HDMI_HEIGHT,SD_MISO,SD_CD,
 	DDRAM_BUSY,DDRAM_DOUT,DDRAM_DOUT_READY,UART_CTS,UART_RXD,UART_DSR,USER_IN,OSD_STATUS,
