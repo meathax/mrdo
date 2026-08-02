@@ -11,7 +11,7 @@
 	<setname>spiero</setname>
 	<parent>dorunrun</parent>
 	<mameversion>0288</mameversion>
-	<rbf>Universal_DoCastle</rbf>
+	<rbf>DoCastle</rbf>
 	<about author="aCORES" source="MAME universal/docastle.cpp, Universal manuals and PCB evidence" />
 	<resolution>240x192</resolution>
 	<rotation>horizontal</rotation>

@@ -178,7 +178,7 @@ foreach ($game in $definition.sets) {
 	[void]$builder.AppendLine("	<setname>$($game.set)</setname>")
 	[void]$builder.AppendLine("	<parent>$($meta.parent)</parent>")
 	[void]$builder.AppendLine("	<mameversion>0288</mameversion>")
-	[void]$builder.AppendLine("	<rbf>Universal_DoCastle</rbf>")
+	[void]$builder.AppendLine("	<rbf>DoCastle</rbf>")
 	[void]$builder.AppendLine('	<about author="aCORES" source="MAME universal/docastle.cpp, Universal manuals and PCB evidence" />')
 	[void]$builder.AppendLine("	<resolution>240x192</resolution>")
 	[void]$builder.AppendLine("	<rotation>$($game.rotation)</rotation>")

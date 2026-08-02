@@ -56,7 +56,7 @@ foreach ($constraint in "derive_pll_clocks","derive_clock_uncertainty","set_fals
 	}
 }
 
-$releaseRbf = Join-Path $ProjectRoot "releases\Universal_DoCastle.rbf"
+$releaseRbf = Join-Path $ProjectRoot "releases\DoCastle.rbf"
 $outputRbf = Join-Path $ProjectRoot "output_files\Universal_DoCastle.rbf"
 $rbfGenerated = Test-Path -LiteralPath $releaseRbf
 $status = "INPUTS_READY"

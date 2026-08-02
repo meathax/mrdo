@@ -36,8 +36,8 @@ foreach ($game in $definition.sets) {
 	[xml]$xml = Get-Content -LiteralPath $mraPath -Raw
 	$root = $xml.misterromdescription
 
-	if ($root.rbf -ne "Universal_DoCastle") {
-		throw "$fileName selects '$($root.rbf)' instead of Universal_DoCastle"
+	if ($root.rbf -ne "DoCastle") {
+		throw "$fileName selects '$($root.rbf)' instead of DoCastle"
 	}
 	if ($root.setname -ne $game.set) {
 		throw "$fileName setname '$($root.setname)' does not match $($game.set)"
@@ -140,4 +140,4 @@ foreach ($game in $definition.sets) {
 if ($seenIds.Count -ne $definition.sets.Count) {
 	throw "Validated $($seenIds.Count) unique IDs for $($definition.sets.Count) games"
 }
-Write-Host "Validated $($definition.sets.Count) Universal_DoCastle MRAs."
+Write-Host "Validated $($definition.sets.Count) DoCastle MRAs."
