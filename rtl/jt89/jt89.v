@@ -125,7 +125,7 @@ always @(posedge clk) begin
         if( wr && !last_wr ) begin
             // MODIFIED 2026-07-28 (Arcade-Ikki): MAME resets the noise LFSR on
             // any access to register 6, including the data byte that follows a
-            // latch, not only on the latch byte itself.  See docs/AUDIT.md A9.
+            // latch, not only on the latch byte itself.
             clr_noise <= reg_sel == 3'b110; // clear noise
             // when there is an access to the control register
             regn <= reg_sel;
