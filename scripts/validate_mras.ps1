@@ -36,8 +36,17 @@ foreach ($game in $definition.sets) {
 	[xml]$xml = Get-Content -LiteralPath $mraPath -Raw
 	$root = $xml.misterromdescription
 
-	if ($root.rbf -ne "DoCastle") {
-		throw "$fileName selects '$($root.rbf)' instead of DoCastle"
+	if ($root.rbf -ne "Arcade-DoCastle") {
+		throw "$fileName selects '$($root.rbf)' instead of Arcade-DoCastle"
+	}
+	if ($root.resolution -ne "15kHz") {
+		throw "$fileName resolution '$($root.resolution)' should be the standard 15kHz arcade-CRT class, not a pixel size"
+	}
+	if ($root.homebrew -ne "no") {
+		throw "$fileName homebrew '$($root.homebrew)' should be 'no' per the MiSTer-devel MRA convention"
+	}
+	if ($root.bootleg -ne "no") {
+		throw "$fileName bootleg '$($root.bootleg)' should be 'no' per the MiSTer-devel MRA convention"
 	}
 	if ($root.setname -ne $game.set) {
 		throw "$fileName setname '$($root.setname)' does not match $($game.set)"
@@ -82,8 +91,8 @@ foreach ($game in $definition.sets) {
 	if ($rom0[0].zip -ne $game.zip) {
 		throw "$fileName points to '$($rom0[0].zip)' instead of $($game.zip)"
 	}
-	if ($rom0[0].type -ne "merged|nonmerged|split") {
-		throw "$fileName ROM type '$($rom0[0].type)' must support merged, nonmerged, and split sets"
+	if ($rom0[0].GetAttribute("type")) {
+		throw "$fileName ROM index-0 has a 'type' attribute; the current MiSTer-devel MRA convention omits it"
 	}
 
 	$expectedId = "{0:X2}" -f [int]$game.id
@@ -140,4 +149,4 @@ foreach ($game in $definition.sets) {
 if ($seenIds.Count -ne $definition.sets.Count) {
 	throw "Validated $($seenIds.Count) unique IDs for $($definition.sets.Count) games"
 }
-Write-Host "Validated $($definition.sets.Count) DoCastle MRAs."
+Write-Host "Validated $($definition.sets.Count) Arcade-DoCastle MRAs."

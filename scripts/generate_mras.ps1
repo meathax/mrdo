@@ -168,8 +168,8 @@ foreach ($game in $definition.sets) {
 	[void]$builder.AppendLine("<misterromdescription>")
 	[void]$builder.AppendLine("	<name>$(Escape-Xml $game.name)</name>")
 	[void]$builder.AppendLine("	<region>$($meta.region)</region>")
-	[void]$builder.AppendLine("	<homebrew>0</homebrew>")
-	[void]$builder.AppendLine("	<bootleg>0</bootleg>")
+	[void]$builder.AppendLine("	<homebrew>no</homebrew>")
+	[void]$builder.AppendLine("	<bootleg>no</bootleg>")
 	[void]$builder.AppendLine("	<platform>Universal Do! Castle Hardware</platform>")
 	[void]$builder.AppendLine("	<series>Mr. Do</series>")
 	[void]$builder.AppendLine("	<year>$($meta.year)</year>")
@@ -178,9 +178,9 @@ foreach ($game in $definition.sets) {
 	[void]$builder.AppendLine("	<setname>$($game.set)</setname>")
 	[void]$builder.AppendLine("	<parent>$($meta.parent)</parent>")
 	[void]$builder.AppendLine("	<mameversion>0288</mameversion>")
-	[void]$builder.AppendLine("	<rbf>DoCastle</rbf>")
+	[void]$builder.AppendLine("	<rbf>Arcade-DoCastle</rbf>")
 	[void]$builder.AppendLine('	<about author="aCORES" source="MAME universal/docastle.cpp, Universal manuals and PCB evidence" />')
-	[void]$builder.AppendLine("	<resolution>240x192</resolution>")
+	[void]$builder.AppendLine("	<resolution>15kHz</resolution>")
 	[void]$builder.AppendLine("	<rotation>$($game.rotation)</rotation>")
 	[void]$builder.AppendLine("	<flip>yes</flip>")
 	[void]$builder.AppendLine("	<players>2</players>")
@@ -194,7 +194,7 @@ foreach ($game in $definition.sets) {
 	}
 	[void]$builder.AppendLine("	</switches>")
 	[void]$builder.AppendLine()
-	[void]$builder.AppendLine(('	<rom index="0" zip="{0}" md5="{1}" type="merged|nonmerged|split">' -f $game.zip,$md5))
+	[void]$builder.AppendLine(('	<rom index="0" zip="{0}" md5="{1}">' -f $game.zip,$md5))
 
 	$cursor = 0
 	foreach ($part in ($game.parts | Sort-Object streamOffset)) {
