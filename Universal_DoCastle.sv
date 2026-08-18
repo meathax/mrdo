@@ -102,9 +102,6 @@ localparam CONF_STR = {
 	"H0O2,Orientation,Vert,Horz;",
 	"O1,Rotate,CCW,CW;",
 	"H0OMN,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"O[102],PCB support,On,Off;",
-	"O[103],PCB audio stage,On,Off;",
-	"O[104],PCB-rate raster,On,Off;",
 	"-;",
 	"P2,CRT Adjust;",
 	"P2O[101],Enable,Off,On;",
@@ -217,9 +214,17 @@ docastle_analog p2_right_analog
 );
 
 wire [7:0] game_id_wire;
-wire pcb_fidelity = ~status[102];
-wire pcb_audio_filter = ~status[103];
-wire exact_pixel_clock = status[104];
+// Real-PCB behaviour is now the only mode: watchdog/sprite-CPU timing runs at
+// full fidelity, the AC-coupled output-stage filter is always applied, and
+// the raster uses the fixed /10 divider (deterministic HSYNC cadence,
+// matches the measured hardware rate). The alternate fractional pixel-clock
+// accumulator that exact_pixel_clock used to select is simulation-only (see
+// the ce_pix_r comment in docastle_core.sv) and was never a real-hardware
+// option, so removing its OSD toggle carries no hardware-verification risk.
+// Previously these were user-togglable via CONF_STR O[102]/O[103]/O[104].
+wire pcb_fidelity = 1'b1;
+wire pcb_audio_filter = 1'b1;
+wire exact_pixel_clock = 1'b0;
 wire soccer_mode = (game_id_wire == 8'h07) || (game_id_wire == 8'h08);
 wire [7:0] soccer_left_joys = ~{
 	p2_down|p2_la_down,p2_left|p2_la_left,p2_up|p2_la_up,p2_right|p2_la_right,

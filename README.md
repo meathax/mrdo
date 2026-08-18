@@ -59,8 +59,10 @@ Accuracy work specific to this core:
   otherwise trigger.
 - **True PCB raster and pixel clock.** 312 x 264 total raster, 240 x 192
   visible, HD6845S at 9.828 MHz / 16, pixel clock 9.828 MHz / 2, giving the
-  authentic ~59.659 Hz refresh (selectable in the OSD against a legacy
-  fixed-rate profile for display compatibility).
+  authentic ~59.659 Hz refresh from a fixed `/10` divider (deterministic
+  HSYNC edge-to-edge period, avoiding the line-length shimmer a fractional
+  accumulator would show on an analog CRT). The alternate fractional-clock
+  path is simulation-only and is no longer exposed in the OSD.
 - **The main-board watchdog** and correct tile/sprite priority encoding
   (bit 3 of each 4bpp pen as a priority/control bit, the two-pass
   transparency/mask behaviour of sprite pens 8–14 versus the pen-15 mask), and
@@ -69,14 +71,19 @@ Accuracy work specific to this core:
   instead of a fire-and-forget write, and Soccer's MSM5205 ADPCM channel at
   its verified clock and 4-bit mode.
 
-An optional `PCB support` OSD mode goes further, enabling the CF37201's decap
-model in place of the proven direct sprite renderer, and `PCB audio stage`
-adds an approximation of the service-manual's AC-coupled output stage and
-speaker roll-off. Both are deterministic, regression-tested against MAME
-frame-by-frame across all nine sets, but — like the rest of this core — have
-not yet been confirmed against a physical Do's Castle PCB, since no board has
-been available during development. The direct renderer remains the default
-until that comparison exists.
+Full PCB-timing fidelity (watchdog and sprite-CPU timing at true rate) and
+the service-manual's AC-coupled output-stage/speaker-rolloff audio filter are
+now always on — the `PCB support` and `PCB audio stage` OSD toggles that used
+to let either be turned off have been removed, so the real-hardware behaviour
+is the only mode shipped.
+
+This is separate from the CF37201's decap-derived alternate framebuffer
+renderer, which remains off and unreachable from the OSD: like the rest of
+this core it is deterministic and regression-tested against MAME frame-by-
+frame across all nine sets, but has not yet been confirmed against a physical
+Do's Castle PCB, since no board has been available during development. The
+proven direct sprite renderer remains the only renderer shipped until that
+comparison exists.
 
 ## ROMs and MRAs
 
