@@ -1,6 +1,7 @@
 output_files/
 db/
 incremental_db/
+.codegraph/
 simulation/
 obj_dir*/
 verif/out/
