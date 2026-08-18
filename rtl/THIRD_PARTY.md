@@ -53,6 +53,13 @@
 - The game PLL's generated output parameters were changed to 49.152 MHz and
   24.576 MHz for this board; the surrounding MiSTer framework is otherwise
   retained.
+- `sys/osd.v`'s `OSD_COLOR` was widened from stock Template's 3-bit single-hue
+  parameter to jotego jtframe's 6-bit two-bit-per-channel tint convention
+  (`modules/jtframe/target/mister/hdl/sys/osd.sv`, jtcores
+  `modules/jtframe/doc/osd.md`), set to `6'h3f` (gray, "mature core" per
+  jtframe's documented maturity-status meaning). Only the tint/blend formula
+  was ported (the `logo_blank`-true branch); jtframe's logo-in-background
+  image system was not, so this core has no OSD logo watermark.
 
 ## Mr. Do! reference
 

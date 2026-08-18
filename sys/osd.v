@@ -21,7 +21,12 @@ module osd
 	output reg    osd_status
 );
 
-parameter  OSD_COLOR    =  3'd4;
+// jtframe OSD colour convention (modules/jtframe/doc/osd.md): a 6-bit RGB
+// tone signalling core maturity, not a vanity colour -- 6'h3f=gray (mature
+// core), 6'h1e=green (almost done), 6'h3c=yellow (playable with problems),
+// 6'h35=red (very early core). This core is decap-verified and MAME-parity
+// checked across all 9 sets; 6'h3f (mature) applies.
+parameter [5:0] OSD_COLOR = 6'h3f;
 
 localparam OSD_WIDTH    = 12'd256;
 localparam OSD_HEIGHT   = 12'd64;
@@ -265,9 +270,14 @@ always @(posedge clk_video) begin
 	reg hs1,hs2,hs3;
 
 	nrdout1 <= din;
-	ordout1 <= {{osd_pixel, osd_pixel, OSD_COLOR[2], din[23:19]},// 23:16
-	            {osd_pixel, osd_pixel, OSD_COLOR[1], din[15:11]},// 15:8
-	            {osd_pixel, osd_pixel, OSD_COLOR[0], din[7:3]}}; //  7:0
+	// jtframe osd.sv blend formula (modules/jtframe/target/mister/hdl/sys/osd.sv),
+	// logo_blank branch -- this core has no OSD logo image (JTFRAME_OSD_NOLOGO
+	// equivalent), so the tint-only path applies unconditionally. Same 5-bit
+	// data-field selection as before; the top 3 bits move from 2x osd_pixel +
+	// 1 colour bit to 1x osd_pixel + 2 colour bits, matching jtframe's tone.
+	ordout1 <= {{osd_pixel, OSD_COLOR[5:4], din[23:19]},// 23:16
+	            {osd_pixel, OSD_COLOR[3:2], din[15:11]},// 15:8
+	            {osd_pixel, OSD_COLOR[1:0], din[7:3]}}; //  7:0
 
 	osd_mux <= ~osd_de[2];
 	rdout2  <= osd_mux ? nrdout1 : ordout1;
