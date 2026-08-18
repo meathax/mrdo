@@ -98,7 +98,14 @@ wire base_reset = reset | !profile_valid | !game_id_loaded;
 reg [23:0] watchdog_count;
 reg watchdog_reset;
 wire watchdog_kick;
-wire machine_reset = base_reset | watchdog_reset;
+wire machine_reset_raw = base_reset | watchdog_reset;
+wire machine_reset;
+
+jtframe_rst_sync u_rst_sync (
+	.rst      ( machine_reset_raw ),
+	.clk      ( clk               ),
+	.rst_sync ( machine_reset     )
+);
 assign watchdog_reset_debug = watchdog_reset;
 always @(posedge clk) begin
 	watchdog_reset <= 0;
@@ -125,21 +132,45 @@ assign profile_valid_debug = profile_valid & game_id_loaded;
 reg [3:0] pix_div;
 reg [12:0] pix_phase;
 reg ce_pix_r;
-reg [11:0] mclk_phase;
-reg ce_mclk;
-reg [10:0] cpu_phase;
-reg ce_cpu;
+wire ce_mclk;
+wire ce_cpu;
 assign ce_pix = ce_pix_r;
+
+// jtframe_frac_cen's toggle[W-2:0]/toggle_b[W-2:0] concatenation is only
+// well-formed for W>=2 (W=1 produces an out-of-range [-1:0] slice, flagged
+// by Verilator as SELRANGE/WIDTHTRUNC). jtcores' own cores never instantiate
+// it below W=2 either -- e.g. cores/castle/hdl/jtcastle_sound.v uses W=4 and
+// takes individual bits. Use W=2 here and take cen[0], which the module
+// always drives with the base n/m-rate pulse (`cen <= { toggle[W-2:0], 1'b1
+// }` -- bit 0 is unconditionally 1'b1 on every "over" event); cen[1] is an
+// unused divide-by-2 subharmonic.
+wire [1:0] cen_mclk_w, cen_cpu_w;
+assign ce_mclk = cen_mclk_w[0];
+assign ce_cpu  = cen_cpu_w[0];
+
+// CF37201 and its external /PL counter use the 9.828 MHz MCLK, exactly
+// twice the pixel rate.  9.828/49.152 = 819/4096.
+jtframe_frac_cen #(.W(2),.WC(13)) u_cen_mclk (
+	.clk ( clk        ),
+	.n   ( 13'd819    ),
+	.m   ( 13'd4096   ),
+	.cen ( cen_mclk_w ),
+	.cenb(            )
+);
+
+jtframe_frac_cen #(.W(2),.WC(11)) u_cen_cpu (
+	.clk ( clk       ),
+	.n   ( 11'd125   ),
+	.m   ( 11'd1536  ),
+	.cen ( cen_cpu_w ),
+	.cenb(           )
+);
 
 always @(posedge clk) begin
 	if (machine_reset) begin
 		pix_div <= 0;
 		pix_phase <= 0;
 		ce_pix_r <= 0;
-		mclk_phase <= 0;
-		ce_mclk <= 0;
-		cpu_phase <= 0;
-		ce_cpu <= 0;
 	end else begin
 		ce_pix_r <= 0;
 		if (exact_pixel_clock) begin
@@ -153,20 +184,6 @@ always @(posedge clk) begin
 			pix_div <= 0;
 			ce_pix_r <= 1;
 		end else pix_div <= pix_div + 1'd1;
-
-		// CF37201 and its external /PL counter use the 9.828 MHz MCLK,
-		// exactly twice the pixel rate.  9.828/49.152 = 819/4096.
-		ce_mclk <= 0;
-		if (mclk_phase >= 12'd3277) begin
-			mclk_phase <= mclk_phase - 12'd3277;
-			ce_mclk <= 1;
-		end else mclk_phase <= mclk_phase + 12'd819;
-
-		ce_cpu <= 0;
-		if (cpu_phase >= 11'd1411) begin
-			cpu_phase <= cpu_phase + 11'd125 - 11'd1536;
-			ce_cpu <= 1;
-		end else cpu_phase <= cpu_phase + 11'd125;
 	end
 end
 

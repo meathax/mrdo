@@ -23,6 +23,17 @@
 - Used by the Indoor Soccer and American Soccer hardware profile at the
   verified 384 kHz input clock and S48 four-bit mode.
 
+## JTFRAME clocking primitives
+
+- `rtl/jtframe/`
+- https://github.com/jotego/jtcores (jtframe module: `modules/jtframe/hdl/clocking/`)
+- Pinned revisions `a0466f2682de3888771b3efde1666a17a56627cb` (jtframe_frac_cen.v),
+  `e00b18cbb1769e72d1ba58015cf4ae874d4ded32` (jtframe_rst_sync.v)
+- GPL-3.0-or-later; author Jose Tejada Gomez
+- Used to generate the board's fractional CPU/PSG (4 MHz) and MCLK (9.828 MHz) clock
+  enables and to synchronize the machine-reset release edge, replacing hand-rolled
+  phase-accumulator equivalents with the upstream jtframe primitives.
+
 ## MiSTer CRT Adjust
 
 - `rtl/crt_adjust.sv`
