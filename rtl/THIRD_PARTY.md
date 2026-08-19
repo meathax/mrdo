@@ -34,17 +34,50 @@
   enables and to synchronize the machine-reset release edge, replacing hand-rolled
   phase-accumulator equivalents with the upstream jtframe primitives.
 
-## MiSTer CRT Adjust
+## JTFRAME OSD video/credits/DB15
 
-- `rtl/crt_adjust.sv`
-- https://github.com/rmonic79/MiSTer-CRT-Adjust
-- Pinned revision `9616f9295c807b95a9cd0961981ebf08dbbabf08`
-- GPL-3.0-or-later; author Umberto Parisi (`rmonic79`), with contributions
-  acknowledged in the upstream source.
-- Integrated core-side with all three upstream controls: horizontal size,
-  horizontal position, and vertical shift. The Universal 312x264 raster uses
-  upstream `HPOS_SYNCSHIFT` mode because its 240-pixel active area has
-  asymmetric horizontal blanking.
+- `rtl/jtframe_osd/`
+- https://github.com/jotego/jtcores (jtframe module: `modules/jtframe/hdl/`)
+- Pinned revisions: `29386d0512118da34eb95994b0389b0fc5e1d14e` (jtframe_resync.v),
+  `c98feaed7e346ace1accd12b8fe637af3ff36b2c` (jtframe_hsize.v),
+  `a652729fbf308cf40d5e5b700bed1fc581098106` (jtframe_linebuf.v),
+  `a20b61629dd812997d7621e27ac3a5b17a5d733a` (jtframe_rpwp_ram.v),
+  `01685a56cb54c22718da2e8e787f4d9e6c7bc941` (jtframe_dual_ram.v, jtframe_ram.v),
+  `31141e94a728f1605baf5026b4f5085e8e4c8a3d` (jtframe_font.v),
+  `91841df549070c2ae0835aa2331dc8a0d2ee6785` (jtframe_credits.v)
+- GPL-3.0-or-later; author Jose Tejada Gomez
+- Replaces rmonic79/MiSTer-CRT-Adjust for OSD consistency with jtframe-based
+  cores: `jtframe_resync` provides CRT H/V offset (raw-analog side, same role
+  crt_adjust's H-Position/V-Shift played), `jtframe_hsize` provides CRT
+  H-scale (crt_adjust's H-Size). `jtframe_credits`/`jtframe_font`/
+  `jtframe_dual_ram`/`jtframe_ram` implement the "Show credits in pause"
+  overlay, with `rtl/jtframe_osd/msg.txt` as the editable source text and
+  `rtl/jtframe_osd/msg2bin.py` (a from-scratch reimplementation of
+  jtcores' `modules/jtframe/src/jtframe/msg/msg.go` encoder, since this repo
+  has no Go toolchain) regenerating `msg.bin` from it -- rerun
+  `python3 rtl/jtframe_osd/msg2bin.py` after editing msg.txt.
+- `rtl/jtframe_osd/font0.hex` is jtframe's own 8x8 bitmap font asset, copied
+  verbatim (`modules/jtframe/bin/font0.hex`).
+- `rtl/jtframe_osd/joy_db15.v` provides the "User port: DB15 Joystick"
+  option (Antonio Villena's DB15 splitter protocol). Sourced from
+  https://github.com/MiSTer-devel/Arcade-SNK_TripleZ80_MiSTer, pinned
+  revision `27870c5d722267096682b269116552daadd35aa7` -- this is the
+  standard MiSTer-devel `sys/`-adjacent joy_db15.v used across many arcade
+  cores, not jtframe-specific, vendored from a real core repo since it
+  isn't part of this project's own `sys/`.
+- `video_freak.sv` and `math.sv` (Scale / Vertical Crop) were already
+  vendored in `sys/` but unused; this round wires them up. Crop Offset (the
+  jtframe cfgstr's separate fine-offset control) was not implemented: its
+  option-label-to-signed-offset mapping could not be verified against a
+  consistent formula in the available jtframe source, so it was left out
+  rather than guessed. Vertical Crop itself (on/off, fixed 216-line target)
+  does not depend on that mapping and is fully wired.
+- `jtframe_hsize`'s `pxl2_cen` port has no verified target oversampling
+  ratio in this repo (jtcores' own convention derives it from each game
+  core's own clock domain, which mrdo does not replicate); it is tied to a
+  constant always-enabled `1'b1` instead, which is always functionally
+  correct for that port's own internal fractional accumulator, just not
+  power-optimal.
 
 ## MiSTer framework
 

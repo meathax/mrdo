@@ -1,0 +1,22 @@
+      \BUNIVERSAL_DOCASTLE\W
+
+  Universal Do's Castle
+     board family
+
+  Nine games, three
+ hardware profiles:
+ Castle, Run Run, Soccer
+
+    \BBased on\W
+ the Universal service
+ manual schematics and
+ Furrtek's CF37201N
+ (TAL004) decap RE work
+
+ SN76489A PSG (jt89) and
+ MSM5205 ADPCM (jt5205)
+ by \RJOTEGO\W
+
+    \BThanks to\W
+ the MiSTer-devel and
+ MAME communities

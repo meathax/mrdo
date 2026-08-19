@@ -16,7 +16,17 @@ if ($LASTEXITCODE -ne 0) {
 
 $sources = @(
 	"verif/mister_wrapper_stubs.sv",
-	"rtl/crt_adjust.sv",
+	"rtl/jtframe/jtframe_frac_cen.v",
+	"rtl/jtframe/jtframe_rst_sync.v",
+	"rtl/jtframe_osd/joy_db15.v",
+	"rtl/jtframe_osd/jtframe_resync.v",
+	"rtl/jtframe_osd/jtframe_rpwp_ram.v",
+	"rtl/jtframe_osd/jtframe_linebuf.v",
+	"rtl/jtframe_osd/jtframe_hsize.v",
+	"rtl/jtframe_osd/jtframe_ram.v",
+	"rtl/jtframe_osd/jtframe_font.v",
+	"rtl/jtframe_osd/jtframe_dual_ram.v",
+	"rtl/jtframe_osd/jtframe_credits.v",
 	"sys/math.sv",
 	"sys/video_freak.sv",
 	"Universal_DoCastle.sv",
@@ -55,13 +65,14 @@ $sources = @(
 	"verif/tv80/tv80s.v"
 )
 
+$mdir = "/mnt/r/Verilator/mrdo/lint_wrapper_$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())"
 $arguments = @(
 	"-d", $WslDistribution,
 	"--cd", $wslProjectRoot,
 	"--exec", $VerilatorSafe,
 	"--lint-only", "--no-timing", "-Wno-fatal", "-Wno-TIMESCALEMOD",
-	"-DMISTER_FB", "-DSIMULATION", "--top-module", "emu",
-	"--threads", "1", "--verilate-jobs", "4"
+	"-DMISTER_FB", "-DSIMULATION", "-DJTFRAME_WIDTH=240", "--top-module", "emu",
+	"--threads", "1", "--verilate-jobs", "4", "--Mdir", $mdir
 ) + $sources
 
 & wsl.exe @arguments

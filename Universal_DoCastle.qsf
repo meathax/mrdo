@@ -24,6 +24,10 @@ set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL NORMAL
 set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 set_global_assignment -name SEED 4
 set_global_assignment -name VERILOG_MACRO "MISTER_FB=1"
+# jtframe_resync.v's WIDE parameter default expression references this macro;
+# the actual value used is overridden at instantiation (WIDE=0, 240px active
+# area), this just needs to be defined for the file to preprocess/elaborate.
+set_global_assignment -name VERILOG_MACRO "JTFRAME_WIDTH=240"
 source sys/sys.tcl
 source sys/sys_analog.tcl
 source files.qip

@@ -24,6 +24,7 @@ set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL NORMAL
 set_global_assignment -name FITTER_EFFORT "FAST FIT"
 set_global_assignment -name SEED 8
 set_global_assignment -name VERILOG_MACRO "MISTER_FB=1"
+set_global_assignment -name VERILOG_MACRO "JTFRAME_WIDTH=240"
 source sys/sys.tcl
 source sys/sys_analog.tcl
 source files.qip
