@@ -158,15 +158,17 @@ original license (see `rtl/THIRD_PARTY.md` for full detail):
 ## Build status
 
 Built with Quartus Prime 17.0.2 Lite (Build 602) targeting the DE10-Nano's
-Cyclone V 5CSEBA6U23. The released binary uses 13,551/41,910 ALMs (32%),
+Cyclone V 5CSEBA6U23. The released binary uses 13,433/41,910 ALMs (32%),
 2,914,931/5,662,720 block-memory bits (51%), 370/553 RAM blocks (67%), and
-41/112 DSP blocks (37%). Worst setup slack is +0.151 ns, worst hold slack is
-+0.247 ns, worst recovery slack is +3.684 ns, worst removal slack is
-+0.792 ns, worst minimum-pulse-width slack is +1.122 ns, and total negative
-slack is zero in every reported domain.
+41/112 DSP blocks (37%). Worst setup slack is +0.134 ns, worst hold slack is
++0.242 ns, worst recovery slack is +3.165 ns, worst removal slack is
++0.801 ns, worst minimum-pulse-width slack is +1.122 ns, and total negative
+slack is zero in every reported domain. `FITTER_EFFORT` is `STANDARD FIT`
+(the prior `FAST FIT` setting left this worst-case path at -0.529 ns on this
+netlist; STANDARD FIT recovers positive margin with no RTL/SDC change).
 
-`releases/Arcade-DoCastle_20260802.rbf` is 3,530,804 bytes, SHA-256
-`68680AD9A042F9F4AE053E47815296B083203025ED41722A8705EFB8EFDAC44F`.
+`releases/Arcade-DoCastle_20260819.rbf` is 3,504,868 bytes, SHA-256
+`F5E313959CD01917E6F5807AA1BAA71A792C8913EE0328C8C5CF4A570629129D`.
 
 This core has completed deterministic Verilator-vs-MAME regressions across
 all nine sets but has not yet been exercised on a physical Do's Castle PCB, as
